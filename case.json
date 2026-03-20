@@ -1,0 +1,40 @@
+[
+{"case_id":"C21","block":"CVS","difficulty":"medium","scenario":{"en":"A 65-year-old man with palpitations and dizziness","th":"ชาย 65 ปี ใจสั่น เวียนศีรษะ"},"additional":{"en":"ECG shows irregularly irregular rhythm","th":"ECG พบจังหวะไม่สม่ำเสมอ"},"answer":"Atrial fibrillation","distractor":"anxiety","key_points":["irregular rhythm","palpitation"],"reference":"AHA AF guideline"},
+{"case_id":"C22","block":"CVS","difficulty":"hard","scenario":{"en":"A 70-year-old with syncope","th":"ชาย 70 ปี เป็นลม"},"additional":{"en":"ECG shows complete heart block","th":"ECG พบ complete heart block"},"answer":"Complete heart block","distractor":"vasovagal syncope","key_points":["syncope","AV block"],"reference":"AHA bradycardia guideline"},
+
+{"case_id":"C23","block":"Nervous system","difficulty":"medium","scenario":{"en":"A 30-year-old with recurrent seizures","th":"ชาย 30 ปี ชักซ้ำ"},"additional":{"en":"EEG abnormal","th":"EEG ผิดปกติ"},"answer":"Epilepsy","distractor":"syncope","key_points":["recurrent seizure"],"reference":"ILAE guideline"},
+{"case_id":"C24","block":"Nervous system","difficulty":"hard","scenario":{"en":"A 50-year-old with headache and papilledema","th":"ชาย 50 ปี ปวดศีรษะและ papilledema"},"additional":{"en":"MRI shows mass lesion","th":"MRI พบก้อน"},"answer":"Brain tumor","distractor":"migraine","key_points":["ICP","mass"],"reference":"Neuro oncology text"},
+
+{"case_id":"C25","block":"Endocrine","difficulty":"medium","scenario":{"en":"A patient with polyuria and polydipsia","th":"ผู้ป่วยปัสสาวะบ่อย กระหายน้ำ"},"additional":{"en":"Glucose 300","th":"น้ำตาล 300"},"answer":"Diabetes mellitus","distractor":"DI","key_points":["hyperglycemia"],"reference":"ADA guideline"},
+{"case_id":"C26","block":"Endocrine","difficulty":"hard","scenario":{"en":"A patient with hypotension and hyperkalemia","th":"ผู้ป่วยความดันต่ำ โพแทสเซียมสูง"},"additional":{"en":"Low cortisol","th":"cortisol ต่ำ"},"answer":"Adrenal crisis","distractor":"sepsis","key_points":["shock","hyperkalemia"],"reference":"Endocrine Society"},
+
+{"case_id":"C27","block":"GI","difficulty":"medium","scenario":{"en":"Epigastric pain radiating to back","th":"ปวดลิ้นปี่ร้าวไปหลัง"},"additional":{"en":"Elevated lipase","th":"lipase สูง"},"answer":"Pancreatitis","distractor":"ulcer","key_points":["lipase"],"reference":"GI guideline"},
+{"case_id":"C28","block":"GI","difficulty":"hard","scenario":{"en":"Vomiting blood","th":"อาเจียนเป็นเลือด"},"additional":{"en":"Portal hypertension","th":"ความดัน portal สูง"},"answer":"Variceal bleeding","distractor":"ulcer","key_points":["cirrhosis"],"reference":"AASLD"},
+
+{"case_id":"C29","block":"Respiratory","difficulty":"medium","scenario":{"en":"Chronic cough with sputum","th":"ไอเรื้อรังมีเสมหะ"},"additional":{"en":"Smoker","th":"สูบบุหรี่"},"answer":"COPD","distractor":"asthma","key_points":["smoking"],"reference":"GOLD guideline"},
+{"case_id":"C30","block":"Respiratory","difficulty":"hard","scenario":{"en":"Acute dyspnea with unilateral absent breath sound","th":"หอบเฉียบพลัน เสียงปอดหายข้างเดียว"},"additional":{"en":"Hyperresonance","th":"เคาะโปร่ง"},"answer":"Pneumothorax","distractor":"PE","key_points":["absent breath sound"],"reference":"BTS guideline"},
+
+{"case_id":"C31","block":"Hematology","difficulty":"medium","scenario":{"en":"Fatigue with macrocytosis","th":"อ่อนเพลีย เม็ดเลือดโต"},"additional":{"en":"Low B12","th":"B12 ต่ำ"},"answer":"B12 deficiency","distractor":"folate deficiency","key_points":["macrocytic"],"reference":"Hematology text"},
+{"case_id":"C32","block":"Hematology","difficulty":"hard","scenario":{"en":"Bleeding and low platelets","th":"เลือดออก เกล็ดเลือดต่ำ"},"additional":{"en":"Schistocytes","th":"พบ schistocyte"},"answer":"TTP","distractor":"ITP","key_points":["MAHA"],"reference":"ASH guideline"},
+
+{"case_id":"C33","block":"Microbiology","difficulty":"medium","scenario":{"en":"Fever with rash","th":"ไข้และผื่น"},"additional":{"en":"Platelet low","th":"เกล็ดเลือดต่ำ"},"answer":"Dengue","distractor":"viral exanthem","key_points":["thrombocytopenia"],"reference":"WHO dengue"},
+{"case_id":"C34","block":"Microbiology","difficulty":"hard","scenario":{"en":"Fever and confusion in ICU","th":"ไข้ สับสนใน ICU"},"additional":{"en":"Blood culture positive","th":"blood culture positive"},"answer":"Sepsis","distractor":"stroke","key_points":["infection"],"reference":"Sepsis guideline"},
+
+{"case_id":"C35","block":"Immunology","difficulty":"medium","scenario":{"en":"Joint pain with morning stiffness","th":"ปวดข้อ แข็งตอนเช้า"},"additional":{"en":"RF positive","th":"RF positive"},"answer":"Rheumatoid arthritis","distractor":"OA","key_points":["autoimmune"],"reference":"ACR guideline"},
+{"case_id":"C36","block":"Immunology","difficulty":"hard","scenario":{"en":"Sudden hypotension after allergen","th":"ความดันตกหลังสัมผัสสาร"},"additional":{"en":"Wheezing","th":"หายใจมีเสียง"},"answer":"Anaphylaxis","distractor":"asthma","key_points":["shock"],"reference":"Allergy guideline"},
+
+{"case_id":"C37","block":"Pharmacology","difficulty":"medium","scenario":{"en":"Patient on warfarin with bleeding","th":"ผู้ป่วยกิน warfarin แล้วเลือดออก"},"additional":{"en":"INR high","th":"INR สูง"},"answer":"Warfarin toxicity","distractor":"DIC","key_points":["INR"],"reference":"Pharma"},
+{"case_id":"C38","block":"Pharmacology","difficulty":"hard","scenario":{"en":"Opioid overdose","th":"กิน opioid เกิน"},"additional":{"en":"Pinpoint pupils","th":"pupil เล็ก"},"answer":"Opioid toxicity","distractor":"stroke","key_points":["resp depression"],"reference":"Toxicology"},
+
+{"case_id":"C39","block":"Skin","difficulty":"medium","scenario":{"en":"Itchy rash with silvery scale","th":"ผื่นคันมีขุยสีเงิน"},"additional":{"en":"Extensor surface","th":"บริเวณ extensor"},"answer":"Psoriasis","distractor":"eczema","key_points":["scale"],"reference":"Dermatology"},
+{"case_id":"C40","block":"Skin","difficulty":"hard","scenario":{"en":"Changing mole","th":"ไฝเปลี่ยนแปลง"},"additional":{"en":"Irregular border","th":"ขอบไม่เรียบ"},"answer":"Melanoma","distractor":"nevus","key_points":["ABCDE"],"reference":"Derm guideline"},
+
+{"case_id":"C41","block":"MSK","difficulty":"medium","scenario":{"en":"Knee pain in elderly","th":"ปวดเข่าในผู้สูงอายุ"},"additional":{"en":"Joint space narrowing","th":"ข้อแคบ"},"answer":"Osteoarthritis","distractor":"RA","key_points":["degenerative"],"reference":"Ortho"},
+{"case_id":"C42","block":"MSK","difficulty":"hard","scenario":{"en":"Hot swollen joint","th":"ข้อบวมร้อน"},"additional":{"en":"Uric acid high","th":"uric acid สูง"},"answer":"Gout","distractor":"septic arthritis","key_points":["crystal"],"reference":"Rheum"},
+
+{"case_id":"C43","block":"Genetics","difficulty":"medium","scenario":{"en":"Tall patient with long limbs","th":"สูง แขนขายาว"},"additional":{"en":"Aortic dilation","th":"aorta ขยาย"},"answer":"Marfan syndrome","distractor":"normal variant","key_points":["connective tissue"],"reference":"Genetics"},
+{"case_id":"C44","block":"Genetics","difficulty":"hard","scenario":{"en":"Child with recurrent infection","th":"เด็กติดเชื้อซ้ำ"},"additional":{"en":"CFTR mutation","th":"mutation CFTR"},"answer":"Cystic fibrosis","distractor":"asthma","key_points":["genetic"],"reference":"Genetics"},
+
+{"case_id":"C45","block":"Biochemistry","difficulty":"medium","scenario":{"en":"Muscle weakness after exercise","th":"กล้ามเนื้ออ่อนแรงหลังออกแรง"},"additional":{"en":"High CK","th":"CK สูง"},"answer":"Rhabdomyolysis","distractor":"myositis","key_points":["muscle breakdown"],"reference":"Biochem"},
+{"case_id":"C46","block":"Biochemistry","difficulty":"hard","scenario":{"en":"Confusion with low sodium","th":"สับสน โซเดียมต่ำ"},"additional":{"en":"Serum Na 115","th":"Na 115"},"answer":"Hyponatremia","distractor":"stroke","key_points":["electrolyte"],"reference":"Medicine"}
+]
