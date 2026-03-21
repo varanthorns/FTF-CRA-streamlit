@@ -3,16 +3,10 @@ import json
 import random
 import pandas as pd
 from datetime import datetime
-import os
-from openai import OpenAI
 
-# -------------------- CONFIG --------------------
-st.set_page_config(page_title="ACLR Clinical Reasoning", layout="wide")
+st.set_page_config(layout="wide")
 
-# OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# -------------------- LOAD DATA --------------------
+# -------------------- LOAD CASE --------------------
 @st.cache_data
 def load_cases():
     with open("cases.json", "r", encoding="utf-8") as f:
@@ -20,171 +14,191 @@ def load_cases():
 
 cases = load_cases()
 
-# -------------------- UI HEADER --------------------
-st.title("🧠 Adaptive Clinical Reasoning Trainer (ACLR)")
+# -------------------- MEDICAL SYNONYMS --------------------
+SYNONYMS = {
+    "myocardial infarction": ["mi", "heart attack", "acute coronary syndrome"],
+    "pulmonary embolism": ["pe", "embolism"],
+    "diabetes mellitus": ["diabetes"],
+    "stroke": ["cva", "cerebrovascular accident"],
+    "pneumonia": ["lung infection"],
+    "septic shock": ["sepsis"],
+    "hyperthyroidism": ["thyrotoxicosis"],
+}
 
-# Language selector
-language = st.selectbox(
-    "Select Language / เลือกภาษา",
-    ["English", "Thai"]
-)
+# -------------------- HELPER --------------------
+def normalize(text):
+    return text.lower().strip()
 
+def expand_terms(term):
+    term = normalize(term)
+    expanded = [term]
+    if term in SYNONYMS:
+        expanded += SYNONYMS[term]
+    return expanded
+
+# -------------------- SCORING ENGINE --------------------
+def evaluate_local_advanced(diagnosis, reasoning, case):
+
+    diagnosis = normalize(diagnosis)
+    reasoning = normalize(reasoning)
+    answer = normalize(case["answer"])
+
+    # -------- Diagnosis Matching --------
+    expanded_answers = expand_terms(answer)
+
+    if any(a in diagnosis for a in expanded_answers):
+        diagnosis_score = 5
+    else:
+        # partial match
+        words = answer.split()
+        overlap = sum([1 for w in words if w in diagnosis])
+        if overlap >= 2:
+            diagnosis_score = 3
+        elif overlap == 1:
+            diagnosis_score = 2
+        else:
+            diagnosis_score = 0
+
+    # -------- Differential Matching --------
+    diff_score = 0
+    for d in case.get("distractor", "").split():
+        if d.lower() in diagnosis:
+            diff_score += 1
+
+    if diff_score > 0 and diagnosis_score == 0:
+        diagnosis_score = 2  # partial credit
+
+    # -------- Reasoning Scoring --------
+    keywords = case.get("key_points", [])
+    weights = {k: 2 for k in keywords}
+
+    score_sum = 0
+    for k, w in weights.items():
+        if k.lower() in reasoning:
+            score_sum += w
+
+    if score_sum >= 4:
+        reasoning_score = 5
+    elif score_sum >= 2:
+        reasoning_score = 3
+    elif score_sum > 0:
+        reasoning_score = 2
+    else:
+        reasoning_score = 0
+
+    # -------- Bias Detection --------
+    bias = []
+
+    if len(reasoning.split()) < 5:
+        bias.append("Premature closure")
+
+    if "first" in reasoning or "initial" in reasoning:
+        bias.append("Anchoring bias")
+
+    if "definitely" in reasoning or "sure" in reasoning:
+        bias.append("Overconfidence bias")
+
+    # -------- Total --------
+    total = diagnosis_score + reasoning_score
+
+    feedback = f"Expected: {case['answer']}"
+
+    return {
+        "diagnosis_score": diagnosis_score,
+        "reasoning_score": reasoning_score,
+        "total_score": total,
+        "bias_detected": bias,
+        "feedback": feedback
+    }
+
+# -------------------- ADAPTIVE DIFFICULTY --------------------
+if "difficulty" not in st.session_state:
+    st.session_state.difficulty = "easy"
+
+def adjust_difficulty(score):
+    if score >= 8:
+        return "hard"
+    elif score >= 5:
+        return "medium"
+    else:
+        return "easy"
+
+# -------------------- UI --------------------
+st.title("🧠 ACLR Offline Intelligent Trainer")
+
+language = st.selectbox("Language", ["English", "Thai"])
 lang_key = "en" if language == "English" else "th"
 
-# -------------------- BLOCK FILTER --------------------
 blocks = sorted(list(set([c["block"] for c in cases])))
-selected_block = st.selectbox(
-    "Select Clinical Block / เลือกหมวดวิชา",
-    ["All"] + blocks
-)
+selected_block = st.selectbox("Block", ["All"] + blocks)
 
-# Filter cases
 filtered_cases = cases if selected_block == "All" else [c for c in cases if c["block"] == selected_block]
 
-# -------------------- CASE SELECTION --------------------
+# Filter by difficulty
+filtered_cases = [c for c in filtered_cases if c.get("difficulty", "easy") == st.session_state.difficulty]
+
+if not filtered_cases:
+    filtered_cases = cases
+
 if "case" not in st.session_state:
     st.session_state.case = random.choice(filtered_cases)
 
-if st.button("🔄 New Case / เคสใหม่"):
+if st.button("🔄 New Case"):
     st.session_state.case = random.choice(filtered_cases)
 
 case = st.session_state.case
 
-# -------------------- DISPLAY CASE --------------------
-st.subheader("📋 Clinical Scenario")
-
+# -------------------- DISPLAY --------------------
+st.subheader("Case")
 st.write(case["scenario"][lang_key])
 st.write(case["additional"][lang_key])
 
-# -------------------- USER INPUT --------------------
-st.subheader("✍️ Your Response")
-
-diagnosis = st.text_input(
-    "Enter full diagnosis (no abbreviations) / ใส่การวินิจฉัยแบบเต็ม"
-)
-
-reasoning = st.text_area(
-    "Explain your clinical reasoning / อธิบายเหตุผลทางคลินิก",
-    height=150
-)
-
-confidence = st.slider(
-    "Confidence level / ความมั่นใจ (%)",
-    0, 100, 50
-)
-
-# -------------------- AI SCORING FUNCTION --------------------
-def evaluate_with_ai(diagnosis, reasoning, case, language):
-
-    prompt = f"""
-You are a medical education expert.
-
-Evaluate the student's response.
-
-CASE:
-{case["scenario"]["en"]}
-{case["additional"]["en"]}
-
-EXPECTED DIAGNOSIS:
-{case["answer"]}
-
-STUDENT RESPONSE:
-Diagnosis: {diagnosis}
-Reasoning: {reasoning}
-
-SCORING RUBRIC:
-
-1. Diagnosis Accuracy (0-5)
-- 5 = correct
-- 3-4 = partially correct
-- 1-2 = incorrect but related
-- 0 = completely wrong
-
-2. Clinical Reasoning Quality (0-5)
-- logical progression
-- use of key features
-- avoidance of errors
-
-3. Cognitive Bias Detection:
-Check for:
-- Anchoring bias
-- Premature closure
-- Availability bias
-
-Return STRICT JSON:
-{{
-  "diagnosis_score": int,
-  "reasoning_score": int,
-  "total_score": int,
-  "bias_detected": ["..."],
-  "feedback": "..."
-}}
-"""
-
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0
-    )
-
-    return response.choices[0].message.content
-
+diagnosis = st.text_input("Diagnosis (full word)")
+reasoning = st.text_area("Reasoning")
 
 # -------------------- SUBMIT --------------------
-if st.button("✅ Submit / ส่งคำตอบ"):
+if st.button("Submit"):
 
-    if diagnosis.strip() == "":
-        st.warning("Please enter diagnosis")
-        st.stop()
+    result = evaluate_local_advanced(diagnosis, reasoning, case)
 
-    with st.spinner("Analyzing clinical reasoning..."):
+    st.success(f"Score: {result['total_score']} / 10")
 
-        try:
-            result = evaluate_with_ai(diagnosis, reasoning, case, language)
+    st.write("### Breakdown")
+    st.write(f"Diagnosis: {result['diagnosis_score']}/5")
+    st.write(f"Reasoning: {result['reasoning_score']}/5")
 
-            import json as js
-            parsed = js.loads(result)
+    st.write("### Cognitive Bias")
+    if result["bias_detected"]:
+        for b in result["bias_detected"]:
+            st.write("-", b)
+    else:
+        st.write("None")
 
-            st.success(f"🎯 Total Score: {parsed['total_score']} / 10")
+    st.write("### Feedback")
+    st.write(result["feedback"])
 
-            st.write("### 📊 Score Breakdown")
-            st.write(f"- Diagnosis: {parsed['diagnosis_score']} / 5")
-            st.write(f"- Reasoning: {parsed['reasoning_score']} / 5")
+    # -------- ADAPTIVE --------
+    st.session_state.difficulty = adjust_difficulty(result["total_score"])
 
-            st.write("### 🧠 Cognitive Bias Detected")
-            if parsed["bias_detected"]:
-                for b in parsed["bias_detected"]:
-                    st.write(f"- {b}")
-            else:
-                st.write("No significant bias detected")
+    st.info(f"Next difficulty: {st.session_state.difficulty}")
 
-            st.write("### 💬 Feedback")
-            st.write(parsed["feedback"])
+    # -------- SAVE --------
+    data = {
+        "time": datetime.now(),
+        "case_id": case["case_id"],
+        "block": case["block"],
+        "difficulty": case["difficulty"],
+        "user_diagnosis": diagnosis,
+        "reasoning": reasoning,
+        "score": result["total_score"]
+    }
 
-            # ---------------- SAVE DATA ----------------
-            data = {
-                "time": datetime.now(),
-                "case_id": case["case_id"],
-                "block": case["block"],
-                "diagnosis": diagnosis,
-                "reasoning": reasoning,
-                "confidence": confidence,
-                "score_total": parsed["total_score"],
-                "diagnosis_score": parsed["diagnosis_score"],
-                "reasoning_score": parsed["reasoning_score"],
-                "bias": ", ".join(parsed["bias_detected"]),
-                "language": language
-            }
+    df = pd.DataFrame([data])
 
-            df = pd.DataFrame([data])
+    try:
+        old = pd.read_csv("responses.csv")
+        df = pd.concat([old, df], ignore_index=True)
+    except:
+        pass
 
-            try:
-                old = pd.read_csv("responses.csv")
-                df = pd.concat([old, df], ignore_index=True)
-            except:
-                pass
-
-            df.to_csv("responses.csv", index=False)
-
-        except Exception as e:
-            st.error(f"Error: {e}")
+    df.to_csv("responses.csv", index=False)
