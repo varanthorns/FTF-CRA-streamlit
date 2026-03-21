@@ -88,7 +88,7 @@ def adjust(score):
     return "easy"
 
 # ===================== UI =====================
-st.title("🧠 ACLR Platform (Multi-user + Research Mode)")
+st.title("ACLR Platform")
 
 # -------- USER LOGIN --------
 user_id = st.text_input("Enter Student ID / Name")
@@ -278,5 +278,4 @@ with tab4:
 - p-value
 - Effect size (Cohen’s d)
 
-ใช้สำหรับงานวิจัยได้ทันที
 """)
