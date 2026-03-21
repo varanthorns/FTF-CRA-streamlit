@@ -1,361 +1,219 @@
 [
   {
-    "case_id": "CVS_H_001",
-    "block": "CVS",
+    "case_id": "IPE_CVS_001",
+    "block": "Cardiovascular",
     "mode": "scenario",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "level": "clinical",
-    "adaptive_tag": 3,
+
     "scenario": {
-      "en": "A 58-year-old man with hypertension and smoking history presents with severe crushing chest pain radiating to his left arm for 2 hours. He is diaphoretic and nauseated. ECG shows ST elevation in leads II, III, and aVF. Troponin is elevated.",
-      "th": ""
+      "en": "A 58-year-old man presents to the emergency department with sudden onset crushing chest pain radiating to the left arm. He appears diaphoretic and anxious. His blood pressure is 90/60 mmHg, pulse 110 bpm. ECG shows ST elevation in leads II, III, and aVF.",
+      "th": "ชายอายุ 58 ปี มาด้วยอาการเจ็บหน้าอกรุนแรงร้าวไปแขนซ้าย เหงื่อออก ตัวเย็น ความดันต่ำ ECG พบ ST elevation"
     },
-    "additional": {"en": "BP 90/60 mmHg", "th": ""},
+
+    "additional": {
+      "en": "Troponin elevated. Risk factors include hypertension and smoking.",
+      "th": "Troponin สูง มีประวัติความดันและสูบบุหรี่"
+    },
+
+    "answer": "Myocardial infarction",
+
     "options": [
-      "Inferior STEMI",
-      "NSTEMI",
-      "Pericarditis",
-      "Aortic dissection"
+      "Myocardial infarction",
+      "Angina",
+      "Aortic dissection",
+      "Pericarditis"
     ],
-    "answer": "Inferior STEMI",
-    "key_points": ["ST elevation II III aVF","radiating chest pain","troponin"],
-    "explanation": "ST elevation in inferior leads with classic ischemic symptoms indicates inferior STEMI.",
-    "examiner_feedback": "Correct answer requires integrating ECG + symptoms. Aortic dissection is tempting but lacks pulse deficit and tearing pain.",
-    "learning_objective": "Diagnose STEMI and localize infarct territory",
+
+    "key_points": [
+      "chest pain",
+      "st elevation",
+      "troponin",
+      "hypotension"
+    ],
+
+    "profession_focus": [
+      "medicine",
+      "nursing",
+      "pharmacy",
+      "lab",
+      "public_health",
+      "physio",
+      "dentistry"
+    ],
+
+    "task": {
+      "medicine": "What is the most likely diagnosis?",
+      "nursing": "What is the priority nursing intervention?",
+      "pharmacy": "What is the most appropriate initial medication?",
+      "lab": "What test confirms the diagnosis?",
+      "public_health": "What is the most important modifiable risk factor?",
+      "physio": "What is the next step after stabilization?",
+      "dentistry": "What is the key precaution before dental procedure?"
+    },
+
+    "interprofessional_answers": {
+      "medicine": "Myocardial infarction",
+      "nursing": "Administer oxygen and monitor vitals",
+      "pharmacy": "Aspirin",
+      "lab": "Troponin",
+      "public_health": "Smoking cessation",
+      "physio": "Cardiac rehabilitation",
+      "dentistry": "Avoid elective procedure"
+    },
+
+    "learning_objective": "Recognize acute coronary syndrome and understand multidisciplinary management",
+
+    "explanation": "ST elevation with chest pain and elevated troponin indicates myocardial infarction. Immediate management includes MONA protocol and stabilization.",
+
     "reference": {
-      "source": "ESC Acute Coronary Syndrome Guidelines",
-      "year": "2023-2025",
-      "note": "STEMI diagnostic criteria"
+      "source": "ESC Guidelines for Acute Coronary Syndromes",
+      "year": 2023
     }
   },
 
   {
-    "case_id": "ENDO_M_002",
+    "case_id": "IPE_ENDO_002",
     "block": "Endocrine",
     "mode": "scenario",
-    "difficulty": "medium",
-    "level": "clinical",
-    "adaptive_tag": 2,
-    "scenario": {
-      "en": "A 32-year-old woman presents with fatigue, weight gain, and cold intolerance. She reports constipation and dry skin. Lab results show elevated TSH and low free T4.",
-      "th": ""
-    },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Primary hypothyroidism",
-      "Hyperthyroidism",
-      "Secondary hypothyroidism",
-      "Cushing syndrome"
-    ],
-    "answer": "Primary hypothyroidism",
-    "key_points": ["TSH high","T4 low"],
-    "explanation": "High TSH with low T4 indicates primary thyroid failure.",
-    "examiner_feedback": "Key trap: secondary hypothyroidism would have low TSH, not high.",
-    "learning_objective": "Interpret thyroid function tests",
-    "reference": {
-      "source": "Endocrine Society + ADA related endocrine standards",
-      "year": "2024-2025",
-      "note": "Hypothyroidism diagnosis"
-    }
-  },
-
-  {
-    "case_id": "NEURO_H_003",
-    "block": "Nervous system",
-    "mode": "scenario",
-    "difficulty": "hard",
-    "level": "clinical",
-    "adaptive_tag": 3,
-    "scenario": {
-      "en": "A 70-year-old man suddenly develops right-sided weakness and aphasia. CT scan shows no hemorrhage. Symptoms started 1 hour ago.",
-      "th": ""
-    },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Ischemic stroke - left MCA",
-      "Hemorrhagic stroke",
-      "Bell palsy",
-      "Seizure"
-    ],
-    "answer": "Ischemic stroke - left MCA",
-    "key_points": ["aphasia","contralateral weakness"],
-    "explanation": "Left MCA stroke causes aphasia and right-sided weakness.",
-    "examiner_feedback": "CT negative for bleed is key to allow thrombolysis.",
-    "learning_objective": "Localize stroke based on deficits",
-    "reference": {
-      "source": "AHA Stroke Guidelines",
-      "year": "2024",
-      "note": "Acute stroke management"
-    }
-  },
-
-  {
-    "case_id": "GI_H_004",
-    "block": "GI",
-    "mode": "scenario",
-    "difficulty": "hard",
-    "level": "clinical",
-    "adaptive_tag": 3,
-    "scenario": {
-      "en": "A 45-year-old man presents with severe epigastric pain radiating to the back after heavy alcohol intake. Serum lipase is markedly elevated.",
-      "th": ""
-    },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Acute pancreatitis",
-      "Peptic ulcer",
-      "Cholecystitis",
-      "GERD"
-    ],
-    "answer": "Acute pancreatitis",
-    "key_points": ["lipase","radiation to back"],
-    "explanation": "Classic pancreatitis presentation with elevated lipase.",
-    "examiner_feedback": "Back radiation distinguishes from ulcer disease.",
-    "learning_objective": "Diagnose pancreatitis",
-    "reference": {
-      "source": "ACG Clinical Guideline",
-      "year": "2024",
-      "note": "Pancreatitis"
-    }
-  },
-
-  {
-    "case_id": "HEMA_M_005",
-    "block": "Hematology",
-    "mode": "scenario",
-    "difficulty": "medium",
-    "level": "clinical",
-    "adaptive_tag": 2,
-    "scenario": {
-      "en": "A child presents with fatigue and pallor. Lab shows Hb low, MCV low, ferritin low.",
-      "th": ""
-    },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Iron deficiency anemia",
-      "Thalassemia",
-      "Anemia of chronic disease",
-      "B12 deficiency"
-    ],
-    "answer": "Iron deficiency anemia",
-    "key_points": ["low MCV","low ferritin"],
-    "explanation": "Microcytic anemia with low ferritin indicates iron deficiency.",
-    "examiner_feedback": "Thalassemia has normal/high iron.",
-    "learning_objective": "Differentiate microcytic anemia",
-    "reference": {
-      "source": "WHO Hematology Classification",
-      "year": "2022-2024",
-      "note": "Anemia classification"
-    }
-  },
-
-  {
-    "case_id": "IMMUNO_H_006",
-    "block": "Immunology",
-    "mode": "scenario",
-    "difficulty": "hard",
-    "level": "preclinical",
-    "adaptive_tag": 3,
-    "scenario": {
-      "en": "A patient develops hemolytic anemia after receiving penicillin. Direct Coombs test is positive.",
-      "th": ""
-    },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Type II hypersensitivity",
-      "Type I hypersensitivity",
-      "Type III hypersensitivity",
-      "Type IV hypersensitivity"
-    ],
-    "answer": "Type II hypersensitivity",
-    "key_points": ["Coombs positive"],
-    "explanation": "Drug-induced hemolysis is antibody-mediated (Type II).",
-    "examiner_feedback": "IgE-mediated reactions are Type I, not hemolysis.",
-    "learning_objective": "Classify immune reactions",
-    "reference": {
-      "source": "AAAAI",
-      "year": "2024",
-      "note": "Hypersensitivity classification"
-    }
-  },
-
-  {
-    "case_id": "PHARM_M_007",
-    "block": "Pharmacology",
-    "mode": "scenario",
-    "difficulty": "medium",
-    "level": "preclinical",
-    "adaptive_tag": 2,
-    "scenario": {
-      "en": "A patient treated with ACE inhibitors develops persistent dry cough and mild hyperkalemia.",
-      "th": ""
-    },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Increased bradykinin",
-      "Decreased aldosterone",
-      "Beta receptor blockade",
-      "Calcium channel inhibition"
-    ],
-    "answer": "Increased bradykinin",
-    "key_points": ["cough"],
-    "explanation": "ACE inhibition increases bradykinin → cough.",
-    "examiner_feedback": "Hyperkalemia is due to aldosterone but cough is bradykinin.",
-    "learning_objective": "Understand ACE inhibitor mechanism",
-    "reference": {
-      "source": "Goodman & Gilman",
-      "year": "2024",
-      "note": "ACE inhibitor mechanism"
-    }
-  },
-
-  {
-    "case_id": "GEN_E_008",
-    "block": "Genetics",
-    "mode": "scenario",
     "difficulty": "easy",
     "level": "preclinical",
-    "adaptive_tag": 1,
+
     "scenario": {
-      "en": "A newborn has hypotonia, flat facial features, and a single palmar crease.",
-      "th": ""
+      "en": "A 45-year-old woman presents with fatigue, weight gain, and cold intolerance. Physical examination reveals dry skin and bradycardia.",
+      "th": "หญิงอายุ 45 ปี อ่อนเพลีย น้ำหนักขึ้น หนาวง่าย ผิวแห้ง ชีพจรช้า"
     },
-    "additional": {"en": "", "th": ""},
+
+    "additional": {
+      "en": "TSH elevated, T4 low.",
+      "th": "TSH สูง T4 ต่ำ"
+    },
+
+    "answer": "Hypothyroidism",
+
     "options": [
-      "Down syndrome",
-      "Turner syndrome",
-      "Klinefelter syndrome",
-      "Edwards syndrome"
+      "Hypothyroidism",
+      "Hyperthyroidism",
+      "Cushing syndrome",
+      "Addison disease"
     ],
-    "answer": "Down syndrome",
-    "key_points": ["trisomy 21"],
-    "explanation": "Classic features of trisomy 21.",
-    "examiner_feedback": "Turner = XO, different phenotype.",
-    "learning_objective": "Recognize chromosomal disorders",
+
+    "key_points": [
+      "fatigue",
+      "weight gain",
+      "cold intolerance",
+      "high tsh"
+    ],
+
+    "profession_focus": [
+      "medicine",
+      "nursing",
+      "pharmacy",
+      "lab",
+      "public_health",
+      "physio",
+      "dentistry"
+    ],
+
+    "task": {
+      "medicine": "What is the diagnosis?",
+      "nursing": "What symptom should be monitored?",
+      "pharmacy": "What is first-line treatment?",
+      "lab": "What lab confirms diagnosis?",
+      "public_health": "What population is at risk?",
+      "physio": "What functional issue may occur?",
+      "dentistry": "What oral sign may be seen?"
+    },
+
+    "interprofessional_answers": {
+      "medicine": "Hypothyroidism",
+      "nursing": "Monitor fatigue",
+      "pharmacy": "Levothyroxine",
+      "lab": "TSH",
+      "public_health": "Women",
+      "physio": "Reduced mobility",
+      "dentistry": "Macroglossia"
+    },
+
+    "learning_objective": "Identify hypothyroidism and its systemic effects",
+
+    "explanation": "High TSH with low T4 confirms hypothyroidism. Symptoms include fatigue, weight gain, and cold intolerance.",
+
     "reference": {
-      "source": "ACMG Guidelines",
-      "year": "2024",
-      "note": "Genetic disorders"
+      "source": "American Thyroid Association Guidelines",
+      "year": 2022
     }
   },
 
   {
-    "case_id": "MICRO_M_009",
-    "block": "Parasitology and microbiology",
+    "case_id": "IPE_INF_003",
+    "block": "Infectious Disease",
     "mode": "scenario",
     "difficulty": "medium",
     "level": "clinical",
-    "adaptive_tag": 2,
+
     "scenario": {
-      "en": "A patient presents with pneumonia and produces rust-colored sputum.",
-      "th": ""
+      "en": "A 23-year-old male presents with fever, productive cough, and rust-colored sputum. On examination, crackles are heard in the right lower lung field.",
+      "th": "ชายอายุ 23 ปี มีไข้ ไอ เสมหะสีสนิม ตรวจพบเสียง crackles"
     },
-    "additional": {"en": "", "th": ""},
+
+    "additional": {
+      "en": "Chest X-ray shows lobar consolidation.",
+      "th": "X-ray พบ consolidation"
+    },
+
+    "answer": "Streptococcus pneumoniae",
+
     "options": [
       "Streptococcus pneumoniae",
-      "Klebsiella pneumoniae",
-      "Mycoplasma pneumoniae",
-      "Staphylococcus aureus"
+      "Klebsiella",
+      "Staphylococcus aureus",
+      "Tuberculosis"
     ],
-    "answer": "Streptococcus pneumoniae",
-    "key_points": ["rust sputum"],
-    "explanation": "Classic pneumococcal pneumonia.",
-    "examiner_feedback": "Klebsiella causes currant jelly sputum.",
-    "learning_objective": "Identify pneumonia pathogens",
-    "reference": {
-      "source": "IDSA Guidelines",
-      "year": "2024",
-      "note": "CAP management"
-    }
-  },
 
-  {
-    "case_id": "MSK_M_010",
-    "block": "Musculoskeletal",
-    "mode": "scenario",
-    "difficulty": "medium",
-    "level": "clinical",
-    "adaptive_tag": 2,
-    "scenario": {
-      "en": "A woman has symmetric joint pain with morning stiffness lasting >1 hour and positive RF.",
-      "th": ""
-    },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Rheumatoid arthritis",
-      "Osteoarthritis",
-      "Gout",
-      "SLE"
+    "key_points": [
+      "rust sputum",
+      "lobar pneumonia",
+      "fever"
     ],
-    "answer": "Rheumatoid arthritis",
-    "key_points": ["RF","morning stiffness"],
-    "explanation": "Autoimmune inflammatory arthritis.",
-    "examiner_feedback": "OA has short stiffness (<30 min).",
-    "learning_objective": "Differentiate arthritis types",
-    "reference": {
-      "source": "ACR Guidelines",
-      "year": "2024",
-      "note": "RA diagnosis"
-    }
-  },
 
-  {
-    "case_id": "SKIN_E_011",
-    "block": "Skin",
-    "mode": "scenario",
-    "difficulty": "easy",
-    "level": "clinical",
-    "adaptive_tag": 1,
-    "scenario": {
-      "en": "A patient has well-demarcated erythematous plaques with silvery scales on elbows.",
-      "th": ""
-    },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Psoriasis",
-      "Eczema",
-      "Fungal infection",
-      "SLE"
+    "profession_focus": [
+      "medicine",
+      "nursing",
+      "pharmacy",
+      "lab",
+      "public_health",
+      "physio",
+      "dentistry"
     ],
-    "answer": "Psoriasis",
-    "key_points": ["silvery scale"],
-    "explanation": "Classic psoriasis lesion.",
-    "examiner_feedback": "Eczema is poorly defined and itchy.",
-    "learning_objective": "Recognize psoriasis",
-    "reference": {
-      "source": "AAD Guidelines",
-      "year": "2024",
-      "note": "Psoriasis"
-    }
-  },
 
-  {
-    "case_id": "PSY_H_012",
-    "block": "Human development",
-    "mode": "scenario",
-    "difficulty": "hard",
-    "level": "clinical",
-    "adaptive_tag": 3,
-    "scenario": {
-      "en": "A 25-year-old woman has depressed mood, loss of interest, poor sleep, and low energy for 3 weeks. No manic history.",
-      "th": ""
+    "task": {
+      "medicine": "What is the causative organism?",
+      "nursing": "What is the priority care?",
+      "pharmacy": "What antibiotic is first line?",
+      "lab": "What test confirms organism?",
+      "public_health": "What prevention method?",
+      "physio": "What therapy helps recovery?",
+      "dentistry": "What oral risk factor relates?"
     },
-    "additional": {"en": "", "th": ""},
-    "options": [
-      "Major depressive disorder",
-      "Bipolar disorder",
-      "Cyclothymia",
-      "Adjustment disorder"
-    ],
-    "answer": "Major depressive disorder",
-    "key_points": [">2 weeks","anhedonia"],
-    "explanation": "Meets DSM-5 criteria for MDD.",
-    "examiner_feedback": "No mania → not bipolar.",
-    "learning_objective": "Diagnose depression",
+
+    "interprofessional_answers": {
+      "medicine": "Streptococcus pneumoniae",
+      "nursing": "Maintain airway",
+      "pharmacy": "Amoxicillin",
+      "lab": "Sputum culture",
+      "public_health": "Vaccination",
+      "physio": "Chest physiotherapy",
+      "dentistry": "Poor oral hygiene"
+    },
+
+    "learning_objective": "Understand community-acquired pneumonia and multidisciplinary care",
+
+    "explanation": "Rust-colored sputum and lobar consolidation suggest pneumococcal pneumonia.",
+
     "reference": {
-      "source": "DSM-5-TR",
-      "year": "2022-2024",
-      "note": "Depression criteria"
+      "source": "IDSA Community-Acquired Pneumonia Guidelines",
+      "year": 2019
     }
   }
 ]
