@@ -14,44 +14,15 @@ def load_cases():
 
 cases = load_cases()
 
-# -------------------- SYNONYMS --------------------
-SYNONYMS = {
-    "myocardial infarction": ["mi","heart attack","acute coronary syndrome"],
-    "stroke": ["cva","cerebrovascular accident"],
-    "diabetes mellitus": ["diabetes"],
-    "pulmonary embolism": ["pe"],
-}
-
+# -------------------- UTILS --------------------
 def normalize(t): return t.lower().strip()
 
-# -------------------- SEMANTIC --------------------
 def semantic_score(a,b):
     try:
         vec = TfidfVectorizer().fit_transform([a,b])
         return cosine_similarity(vec[0:1], vec[1:2])[0][0]
     except:
         return 0
-
-# -------------------- REASONING --------------------
-def reasoning_analysis(text, case):
-    text = normalize(text)
-    score = 0
-    explain = []
-
-    for k in case.get("key_points",[]):
-        if k.lower() in text:
-            score += 1
-            explain.append(f"✔ key: {k}")
-
-    if "because" in text or "เนื่องจาก" in text:
-        score += 1
-        explain.append("✔ causal reasoning")
-
-    if "therefore" in text or "ดังนั้น" in text:
-        score += 1
-        explain.append("✔ conclusion logic")
-
-    return score, explain
 
 # -------------------- SCORING --------------------
 def evaluate(dx, reasoning, case):
@@ -61,57 +32,33 @@ def evaluate(dx, reasoning, case):
 
     sim = semantic_score(dx_n, ans)
 
-    # diagnosis
     if sim > 0.7:
         dx_score = 5
     elif sim > 0.4:
         dx_score = 3
-    elif any(s in dx_n for s in SYNONYMS.get(ans,[])):
-        dx_score = 3
     else:
         dx_score = 0
 
-    # differential bonus
-    if dx_score == 0:
-        if any(d.lower() in dx_n for d in str(case.get("distractor","")).split()):
-            dx_score = 2
-
     # reasoning
-    r_raw, r_exp = reasoning_analysis(reasoning, case)
-    r_score = min(5, r_raw)
+    score = 0
+    for k in case.get("key_points",[]):
+        if k.lower() in reasoning.lower():
+            score += 1
 
-    # bias
+    if "because" in reasoning.lower():
+        score += 1
+
+    r_score = min(5, score)
+
     bias = []
     if len(reasoning.split()) < 5:
         bias.append("Premature closure")
-    if "first" in reasoning:
-        bias.append("Anchoring bias")
-    if "definitely" in reasoning:
-        bias.append("Overconfidence bias")
 
     total = dx_score + r_score
 
-    feedback = f"""
-Correct: {case['answer']}
-Similarity: {round(sim,2)}
+    return dx_score, r_score, total, bias, sim
 
-Reasoning:
-{chr(10).join(r_exp)}
-
-Improve:
-- Add key features
-- Use structured logic
-"""
-
-    return dx_score, r_score, total, bias, feedback
-
-# -------------------- SAFE RANDOM --------------------
-def safe_choice(primary, fallback):
-    if primary: return random.choice(primary)
-    if fallback: return random.choice(fallback)
-    return None
-
-# -------------------- ADAPTIVE --------------------
+# -------------------- SESSION --------------------
 if "difficulty" not in st.session_state:
     st.session_state.difficulty = "easy"
 
@@ -120,121 +67,126 @@ def adjust(score):
     elif score >= 5: return "medium"
     else: return "easy"
 
-# -------------------- UI --------------------
-st.title("🧠 ACLR Full Offline System")
+# -------------------- TABS --------------------
+tab1, tab2, tab3 = st.tabs(["🧠 Practice", "📊 Analytics", "📜 History"])
 
-language = st.selectbox("Language",["English","Thai"])
-lang = "en" if language=="English" else "th"
+# =========================================================
+# 🧠 TAB 1: PRACTICE
+# =========================================================
+with tab1:
 
-blocks = sorted(list(set([c["block"] for c in cases])))
-block = st.selectbox("Block",["All"]+blocks)
+    st.title("🧠 ACLR Practice")
 
-mode = st.selectbox("Difficulty Mode",["adaptive","easy","medium","hard"])
+    language = st.selectbox("Language",["English","Thai"])
+    lang = "en" if language=="English" else "th"
 
-# filter
-filtered = cases
+    blocks = sorted(list(set([c["block"] for c in cases])))
+    block = st.selectbox("Block",["All"]+blocks)
 
-if block!="All":
-    filtered = [c for c in filtered if c["block"]==block]
+    mode = st.selectbox("Difficulty",["adaptive","easy","medium","hard"])
 
-if mode!="adaptive":
-    filtered = [c for c in filtered if c.get("difficulty","easy")==mode]
-else:
-    filtered = [c for c in filtered if c.get("difficulty","easy")==st.session_state.difficulty]
+    filtered = cases
 
-# fallback smart
-if not filtered:
-    st.warning("No exact match → fallback to closest difficulty")
-    if st.session_state.difficulty == "hard":
-        filtered = [c for c in cases if c.get("difficulty")=="medium"]
-    elif st.session_state.difficulty == "medium":
-        filtered = [c for c in cases if c.get("difficulty")=="easy"]
+    if block!="All":
+        filtered = [c for c in filtered if c["block"]==block]
+
+    if mode!="adaptive":
+        filtered = [c for c in filtered if c.get("difficulty","easy")==mode]
     else:
+        filtered = [c for c in filtered if c.get("difficulty","easy")==st.session_state.difficulty]
+
+    if not filtered:
         filtered = cases
 
-# spaced repetition (mistakes)
-def get_weak_cases():
+    if "case" not in st.session_state:
+        st.session_state.case = random.choice(filtered)
+
+    if st.button("New Case"):
+        st.session_state.case = random.choice(filtered)
+
+    case = st.session_state.case
+
+    st.subheader("Case")
+    st.write(case["scenario"][lang])
+    st.write(case["additional"][lang])
+
+    dx = st.text_input("Diagnosis")
+    reasoning = st.text_area("Reasoning")
+
+    if st.button("Submit"):
+
+        dx_s, r_s, total, bias, sim = evaluate(dx, reasoning, case)
+
+        st.success(f"Score: {total}/10")
+        st.write("Diagnosis:", dx_s)
+        st.write("Reasoning:", r_s)
+        st.write("Similarity:", round(sim,2))
+        st.write("Bias:", bias if bias else "None")
+
+        if mode=="adaptive":
+            st.session_state.difficulty = adjust(total)
+            st.info(f"Next difficulty: {st.session_state.difficulty}")
+
+        row = {
+            "time": datetime.now(),
+            "case_id": case["case_id"],
+            "block": case["block"],
+            "difficulty": case["difficulty"],
+            "score": total
+        }
+
+        df = pd.DataFrame([row])
+
+        try:
+            old = pd.read_csv("responses.csv")
+            df = pd.concat([old,df])
+        except:
+            pass
+
+        df.to_csv("responses.csv",index=False)
+
+# =========================================================
+# 📊 TAB 2: ANALYTICS
+# =========================================================
+with tab2:
+
+    st.title("📊 Learning Analytics")
+
     try:
         df = pd.read_csv("responses.csv")
-        weak_ids = df[df["score"]<5]["case_id"].values
-        return [c for c in cases if c["case_id"] in weak_ids]
+
+        st.subheader("📈 Learning Curve")
+        st.line_chart(df["score"])
+
+        st.subheader("📊 Average Score")
+        st.metric("Mean Score", round(df["score"].mean(),2))
+
+        st.subheader("📚 Performance by Block")
+        st.bar_chart(df["block"].value_counts())
+
+        st.subheader("🎯 Difficulty Distribution")
+        st.bar_chart(df["difficulty"].value_counts())
+
     except:
-        return []
+        st.info("No data yet")
 
-weak_cases = get_weak_cases()
+# =========================================================
+# 📜 TAB 3: HISTORY
+# =========================================================
+with tab3:
 
-if random.random() < 0.3 and weak_cases:
-    filtered = weak_cases
+    st.title("📜 Attempt History")
 
-# select case
-if "case" not in st.session_state:
-    st.session_state.case = safe_choice(filtered, cases)
-
-if st.button("New Case"):
-    st.session_state.case = safe_choice(filtered, cases)
-
-case = st.session_state.case
-
-if case is None:
-    st.error("No cases available")
-    st.stop()
-
-# display
-st.subheader("Case")
-st.write(case.get("scenario",{}).get(lang,""))
-st.write(case.get("additional",{}).get(lang,""))
-
-dx = st.text_input("Diagnosis")
-reasoning = st.text_area("Reasoning")
-
-# -------------------- SUBMIT --------------------
-if st.button("Submit"):
-
-    dx_s, r_s, total, bias, feedback = evaluate(dx, reasoning, case)
-
-    st.success(f"Score: {total}/10")
-    st.write("Diagnosis:", dx_s)
-    st.write("Reasoning:", r_s)
-    st.write("Bias:", bias if bias else "None")
-    st.write("Feedback")
-    st.write(feedback)
-
-    # adaptive
-    if mode=="adaptive":
-        st.session_state.difficulty = adjust(total)
-        st.info(f"Next difficulty: {st.session_state.difficulty}")
-
-    # save
-    row = {
-        "time": datetime.now(),
-        "case_id": case["case_id"],
-        "block": case["block"],
-        "difficulty": case["difficulty"],
-        "score": total
-    }
-
-    df = pd.DataFrame([row])
     try:
-        old = pd.read_csv("responses.csv")
-        df = pd.concat([old,df])
+        df = pd.read_csv("responses.csv")
+
+        st.dataframe(df.sort_values("time", ascending=False))
+
+        st.download_button(
+            "Download CSV",
+            df.to_csv(index=False),
+            "aclr_results.csv"
+        )
+
     except:
-        pass
-
-    df.to_csv("responses.csv",index=False)
-
-# -------------------- DASHBOARD --------------------
-st.divider()
-st.header("📊 Dashboard")
-
-try:
-    df = pd.read_csv("responses.csv")
-
-    st.line_chart(df["score"])
-    st.write("Average:", round(df["score"].mean(),2))
-    st.bar_chart(df["block"].value_counts())
-
-    st.subheader("History")
-    st.dataframe(df.tail(10))
-
-except:
-    st.info("No data yet")
+        st.info("No history yet")
