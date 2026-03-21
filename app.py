@@ -29,23 +29,50 @@ def semantic_score(a,b):
 # ===================== SCORING =====================
 def evaluate(dx, reasoning, case):
 
+    # ===== Diagnosis =====
     sim = semantic_score(dx, case["answer"])
-    dx_score = 5 if sim>0.7 else 3 if sim>0.4 else 0
+    
+    if normalize(dx) == normalize(case["answer"]):
+        dx_score = 5
+        dx_level = "correct"
+    elif sim > 0.65:
+        dx_score = 3
+        dx_level = "close"
+    else:
+        dx_score = 0
+        dx_level = "wrong"
 
+    # ===== Reasoning =====
     r_score = 0
     used = []
-    for k in case.get("key_points",[]):
+    
+    for k in case.get("key_points", []):
         if k.lower() in reasoning.lower():
             r_score += 1
             used.append(k)
 
-    if "because" in reasoning.lower() or "ดังนั้น" in reasoning:
+    logic_words = ["because","therefore","thus","so","เนื่องจาก","ดังนั้น"]
+    if any(w in reasoning.lower() for w in logic_words):
+        r_score += 1
+
+    if len(reasoning.split()) > 20:
         r_score += 1
 
     r_score = min(5, r_score)
+
     total = dx_score + r_score
 
-    return dx_score, r_score, total, sim, used
+    # ===== Examiner Feedback =====
+    feedback = case.get("examiner_feedback","")
+
+    if dx_level == "wrong":
+        feedback = "❌ Diagnosis incorrect. " + feedback
+    elif dx_level == "close":
+        feedback = "⚠️ Close, but not precise. " + feedback
+    else:
+        feedback = "✅ Good diagnostic accuracy. " + feedback
+
+    return dx_score, r_score, total, sim, used, feedback
 
 # ===================== STATS =====================
 def compute_stats(df):
@@ -57,7 +84,6 @@ def compute_stats(df):
     results["mean"] = np.mean(scores)
     results["sd"] = np.std(scores)
 
-    # early vs late
     mid = len(scores)//2
     early = scores[:mid]
     late = scores[mid:]
@@ -78,17 +104,31 @@ def compute_stats(df):
 
     return results
 
-# ===================== SESSION =====================
+# ===================== ADAPTIVE =====================
 if "difficulty" not in st.session_state:
     st.session_state.difficulty = "easy"
 
+if "recent_scores" not in st.session_state:
+    st.session_state.recent_scores = []
+
 def adjust(score):
-    if score>=8: return "hard"
-    elif score>=5: return "medium"
+
+    history = st.session_state.recent_scores
+    history.append(score)
+
+    if len(history) > 5:
+        history.pop(0)
+
+    avg = sum(history)/len(history)
+
+    if avg >= 8:
+        return "hard"
+    elif avg >= 5:
+        return "medium"
     return "easy"
 
 # ===================== UI =====================
-st.title("ACLR Platform")
+st.title("🧠 ACLR Platform (AI Clinical Learning & Reasoning)")
 
 # -------- USER LOGIN --------
 user_id = st.text_input("Enter Student ID / Name")
@@ -117,10 +157,7 @@ with tab1:
     with col2:
         blocks = sorted(list(set([c["block"] for c in cases])))
         block = st.selectbox("Block",["All"]+blocks)
-        mode_select = st.selectbox(
-            "Question Type",
-            ["All", "keyword", "scenario"]
-        )
+        mode_select = st.selectbox("Question Type",["All","keyword","scenario"])
     with col3:
         mode = st.selectbox("Difficulty",["adaptive","easy","medium","hard"])
 
@@ -130,13 +167,9 @@ with tab1:
 
     if block != "All":
         filtered = [c for c in filtered if c["block"] == block]
-    
-    # NEW: filter by mode
-    if mode_select != "All":
-        filtered = [c for c in filtered if c.get("mode", "scenario") == mode_select]
 
-    if block!="All":
-        filtered = [c for c in filtered if c["block"]==block]
+    if mode_select != "All":
+        filtered = [c for c in filtered if c.get("mode","scenario")==mode_select]
 
     if mode!="adaptive":
         filtered = [c for c in filtered if c.get("difficulty","easy")==mode]
@@ -154,12 +187,13 @@ with tab1:
 
     case = st.session_state.case
 
-    st.subheader("Case")
+    st.subheader(f"{case['block']} | {case['difficulty']} | {case.get('level','')}")
+    st.caption(f"Adaptive difficulty: {st.session_state.difficulty}")
+
     # ===== DISPLAY CASE =====
     if case.get("mode") == "keyword":
         st.markdown("### 🔑 Keywords")
         st.write(case["scenario"][lang])
-    
     else:
         st.markdown("### 📋 Clinical Scenario")
         st.write(case["scenario"][lang])
@@ -170,13 +204,28 @@ with tab1:
 
     if st.button("Submit"):
 
-        dx_s, r_s, total, sim, used = evaluate(dx, reasoning, case)
+        dx_s, r_s, total, sim, used, feedback = evaluate(dx, reasoning, case)
 
         st.success(f"Score: {total}/10")
-        st.write("Diagnosis:", dx_s)
-        st.write("Reasoning:", r_s)
+        st.write("Diagnosis score:", dx_s)
+        st.write("Reasoning score:", r_s)
         st.write("Similarity:", round(sim,2))
         st.write("Key features used:", used)
+
+        missing = [k for k in case.get("key_points",[]) if k not in used]
+        st.warning(f"Missing key features: {missing}")
+
+        st.markdown("### 🧠 AI Examiner Feedback")
+        st.info(feedback)
+
+        st.markdown("### 📚 Explanation")
+        st.write(case.get("explanation",""))
+
+        st.markdown("### 🎯 Learning Objective")
+        st.write(case.get("learning_objective",""))
+
+        st.markdown("### 📖 Reference")
+        st.write(f"{case['reference']['source']} ({case['reference']['year']})")
 
         if mode=="adaptive":
             st.session_state.difficulty = adjust(total)
@@ -210,10 +259,19 @@ with tab2:
 
         st.subheader("All Users Overview")
         stats_all = compute_stats(df)
-
         st.write(stats_all)
 
         st.line_chart(df["score"])
+
+        # Learning curve
+        df["attempt"] = range(len(df))
+        st.subheader("Learning Curve")
+        st.line_chart(df.set_index("attempt")["score"])
+
+        # Block performance
+        st.subheader("Performance by Block")
+        block_perf = df.groupby("block")["score"].mean()
+        st.bar_chart(block_perf)
 
         st.subheader("Per User Analysis")
         user_df = df[df["user"]==user_id]
@@ -221,10 +279,8 @@ with tab2:
         if len(user_df)>2:
             stats_user = compute_stats(user_df)
             st.write(stats_user)
-
             st.line_chart(user_df["score"])
 
-        # group comparison
         st.subheader("Group Comparison")
         group_mean = df.groupby("user")["score"].mean()
         st.bar_chart(group_mean)
@@ -262,7 +318,7 @@ with tab4:
 ## 🧠 วิธีใช้งาน
 1. เลือก block และ difficulty
 2. อ่านเคส
-3. ใส่ diagnosis (คำเต็ม)
+3. ใส่ diagnosis
 4. อธิบาย reasoning
 5. กด Submit
 
@@ -277,23 +333,27 @@ with tab4:
 
 ### Reasoning (0–5)
 - ใช้ key features
-- มีเหตุผลเชิง causal
-- มี logical conclusion
+- มี causal logic
+- มี structured thinking
 
 ---
 
 ## 📈 การแปลผล
-- 8–10 = expert level
+- 8–10 = expert
 - 5–7 = intermediate
-- <5 = needs improvement
+- <5 = improve
 
 ---
 
 ## 📊 Statistical Analysis
-ระบบคำนวณ:
 - Mean / SD
-- t-test (early vs late)
-- p-value
+- t-test
 - Effect size (Cohen’s d)
 
+---
+
+## 🤖 AI Features
+- Adaptive difficulty
+- Examiner-style feedback
+- Learning curve tracking
 """)
