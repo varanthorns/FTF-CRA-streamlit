@@ -6,7 +6,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ต้องอยู่บรรทัดแรกสุดของสคริปต์
-st.set_page_config(layout="wide", page_title="ACLR Clinical Reasoning")
+st.set_page_config(layout="wide", page_title="ACLR Clinical Reasoning Professional")
 
 # ===================== UTILS & LOAD =====================
 def safe_case(case):
@@ -16,6 +16,7 @@ def safe_case(case):
     case.setdefault("interprofessional_answers", {})
     case.setdefault("reference", {"source":"Unknown","year":"-"})
     case.setdefault("key_points", [])
+    case.setdefault("labs", []) # เพิ่มเพื่อรองรับระบบ Lab
     return case
 
 @st.cache_data
@@ -25,18 +26,23 @@ def load_cases():
             data = json.load(f)
             return [safe_case(c) for c in data]
     except FileNotFoundError:
-        # Mock Data สำหรับทดสอบหากไม่มีไฟล์จริง
+        # Mock Data ระดับ Professional สำหรับทดสอบ
         return [safe_case({
-            "block":"Cardiology", 
-            "difficulty":"easy", 
-            "scenario":{"en":"A 55-year-old male presents with crushing chest pain radiating to the left jaw."}, 
-            "answer":"Acute Myocardial Infarction", 
-            "key_points":["chest pain", "radiating", "jaw"],
+            "block":"Cardiovascular", 
+            "difficulty":"hard", 
+            "scenario":{"en":"A 62-year-old male with a history of HTN and smoking presents with 2 hours of substernal chest pressure and diaphoresis. BP 150/90, HR 95."}, 
+            "labs": [
+                {"Test": "Troponin T", "Result": "250", "Unit": "ng/L", "Range": "< 14"},
+                {"Test": "CK-MB", "Result": "12.5", "Unit": "ng/mL", "Range": "< 5.0"}
+            ],
+            "answer":"ST-Elevation Myocardial Infarction", 
+            "key_points":["chest pressure", "diaphoresis", "troponin", "smoking"],
             "interprofessional_answers": {
-                "nursing": "Administer oxygen and prepare ECG.",
-                "pharmacy": "Prepare Aspirin and Nitroglycerin.",
-                "ems": "Immediate transport to cath lab."
-            }
+                "medicine": "Activate cath lab for primary PCI.",
+                "nursing": "Establish IV access and continuous ECG monitoring.",
+                "pharmacy": "Administer Aspirin 325mg and Clopidogrel loading dose."
+            },
+            "reference": {"source": "AHA/ACC STEMI Guidelines", "year": "2026"}
         })]
 
 cases = load_cases()
@@ -51,7 +57,7 @@ def semantic_score(a, b):
         return 0
 
 def extract_steps(reasoning):
-    keys = ["because","therefore","thus","so","เนื่องจาก","ดังนั้น", "ทำให้", "ส่งผล"]
+    keys = ["because","therefore","thus","so","เนื่องจาก","ดังนั้น", "ทำให้", "ส่งผล", "เนื่องด้วย"]
     return [s.strip() for s in reasoning.split(".") if any(k in s.lower() for k in keys) and s.strip()]
 
 # ===================== SCORING =====================
@@ -89,7 +95,7 @@ if "submitted" not in st.session_state:
 
 # ===================== HEADER =====================
 st.title("🧠 ACLR – Clinical Reasoning Platform")
-st.caption("UWorld + AMBOSS + OSCE + Interprofessional Simulation")
+st.caption("UWorld + AMBOSS + OSCE + Interprofessional Simulation (Edition 2026)")
 
 user = st.text_input("👤 User ID / Name")
 if not user:
@@ -110,114 +116,143 @@ with st.sidebar:
         filtered = [c for c in cases if (block_choice == "All" or c["block"] == block_choice) and c["difficulty"] == diff_choice]
         if filtered:
             st.session_state.case = random.choice(filtered)
-            st.session_state.submitted = False  # รีเซ็ตสถานะการส่ง
-            st.session_state.pop("start", None) # รีเซ็ต Timer
+            st.session_state.submitted = False
+            st.session_state.pop("start", None)
             st.rerun()
         else:
             st.warning("No cases found matching these criteria.")
 
 case = st.session_state.case
 
-# ===================== MAIN LAYOUT =====================
+# ===================== MAIN LAYOUT (UPGRADED) =====================
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown("## 📋 Clinical Scenario")
-    st.info(case["scenario"].get("en", "No scenario available"))
+    # ------------------ TABS SECTION ------------------
+    tab1, tab2, tab3 = st.tabs(["📋 Clinical Scenario", "🩸 Investigations", "📝 Answer Sheet"])
     
-    if case.get("additional"):
-        st.caption(case["additional"].get("en", ""))
-
-    st.markdown("## 🎯 Your Task")
-    task_text = case.get("task", {}).get(profession, "Provide your clinical decision and reasoning.")
-    st.warning(task_text)
-
-    st.markdown("## 🧠 Think Step-by-Step")
-    st.caption("1. Identify symptoms | 2. Pathophysiology | 3. Differential | 4. Final Decision")
-
-    if mode == "OSCE":
-        if "start" not in st.session_state:
-            if st.button("▶️ Start OSCE"):
-                st.session_state.start = time.time()
-                st.rerun()
+    with tab1:
+        st.markdown("### Patient Presentation")
+        st.info(case["scenario"].get("en", "No scenario available"))
+        if case.get("additional"):
+            st.caption(f"**Vitals/Clinical Notes:** {case['additional'].get('en', '')}")
+            
+    with tab2:
+        st.markdown("### 🧪 Laboratory & Diagnostic Results")
+        if case.get("labs"):
+            st.table(pd.DataFrame(case["labs"]))
         else:
-            elapsed = int(time.time() - st.session_state.start)
-            remaining = max(0, 180 - elapsed) # ให้เวลา 3 นาที
-            st.metric("⏱ Time Left", f"{remaining}s")
-            if remaining <= 0:
-                st.error("⏰ Time up!")
+            st.info("No specific laboratory data provided for this case.")
+        
+        # เพิ่มพื้นที่สำหรับ Imaging ในอนาคต
+        st.caption("Note: Radiological images are currently described in the clinical notes.")
 
-    dx = st.text_input("🩺 Your Diagnosis / Answer")
-    reasoning = st.text_area("✍️ Clinical Reasoning")
-    
-    if st.button("✅ Submit"):
-        if dx and reasoning:
-            st.session_state.submitted = True
-            total, dx_s, r_s, d_s, target, used, steps, level = evaluate(dx, reasoning, case, profession)
-            
-            st.success(f"🏆 Score: {total}/10")
-            
-            # Feedback
-            st.markdown("### 🔍 AI Examiner Feedback")
-            if level == "correct": st.success("✅ Excellent accuracy")
-            elif level == "close": st.warning("⚠️ Close but not precise")
-            else: st.error("❌ Incorrect diagnosis")
-            
-            st.write(f"**Correct Answer:** {target}")
-            
-            c_left, c_right = st.columns(2)
-            with c_left:
-                st.write("**Key Features Found:**", used)
-                missing = [k for k in case.get("key_points", []) if k.lower() not in reasoning.lower()]
-                if missing: st.write("**Missing:**", missing)
-            
-            with c_right:
-                st.write("**Logic Steps Identified:**")
-                if steps:
-                    for s in steps: st.write(f"🔹 {s}")
-                else:
-                    st.write("No clear causal reasoning steps found.")
+    with tab3:
+        st.markdown("### 🎯 Your Task")
+        task_text = case.get("task", {}).get(profession, "Provide your definitive clinical decision and reasoning.")
+        st.warning(task_text)
 
-            # Save History
-            res_df = pd.DataFrame([{"user": user, "block": case["block"], "score": total, "time": datetime.now()}])
-            try:
-                old = pd.read_csv("responses.csv")
-                res_df = pd.concat([old, res_df])
-            except: pass
-            res_df.to_csv("responses.csv", index=False)
-        else:
-            st.error("Please provide both diagnosis and reasoning.")
+        if mode == "OSCE":
+            if "start" not in st.session_state:
+                if st.button("▶️ Start Timer"):
+                    st.session_state.start = time.time()
+                    st.rerun()
+            else:
+                elapsed = int(time.time() - st.session_state.start)
+                remaining = max(0, 180 - elapsed)
+                st.metric("⏱ Time Left", f"{remaining}s")
+                if remaining <= 0: st.error("⏰ Time up!")
 
+        # ------------------ INPUT SECTION ------------------
+        ddx = st.multiselect("🔍 Differential Diagnosis (Select relevant possibilities)", 
+                           ["Sepsis", "MI", "Pulmonary Embolism", "Pneumonia", "Aortic Dissection", "Heart Failure", "Gastroenteritis", "Other"])
+        
+        dx = st.text_input("🩺 Final Diagnosis / Management Plan")
+        reasoning = st.text_area("✍️ Clinical Reasoning (Identify Evidence & Pathophysiology)", height=150)
+        
+        if st.button("✅ Submit Decision"):
+            if dx and reasoning:
+                st.session_state.submitted = True
+                # ประมวลผลคะแนน
+                total, dx_s, r_s, d_s, target, used, steps, level = evaluate(dx, reasoning, case, profession)
+                
+                # แสดงผลลัพธ์ด้วย Visuals
+                st.divider()
+                st.markdown(f"### 🏆 Competency Report: {total}/10")
+                
+                res_cols = st.columns(3)
+                res_cols[0].metric("Accuracy Score", f"{dx_s}/5")
+                res_cols[1].metric("Reasoning Score", f"{r_s}/5")
+                res_cols[2].metric("Logic Steps", f"{d_s}/3")
+                
+                st.progress(total * 10, text=f"Overall Competency: {level.upper()}")
+
+                # Feedback Detailed
+                st.markdown("#### 🔍 AI Examiner Feedback")
+                if level == "correct": st.success("Excellent accuracy. Your diagnosis matches current clinical guidelines.")
+                elif level == "close": st.warning("Clinically close. However, the exact terminology or specificity could be improved.")
+                else: st.error("Diagnosis inconsistent with evidence. Please review the key clinical features.")
+                
+                st.markdown(f"**Gold Standard Answer:** `{target}`")
+                
+                c_left, c_right = st.columns(2)
+                with c_left:
+                    st.write("**Key Clinical Features Identified:**")
+                    for u in used: st.write(f"✅ {u}")
+                    missing = [k for k in case.get("key_points", []) if k.lower() not in reasoning.lower()]
+                    if missing:
+                        st.write("**Features Overlooked:**")
+                        for m in missing: st.write(f"❌ {m}")
+                
+                with c_right:
+                    st.write("**Logic Path (Causal Links):**")
+                    if steps:
+                        for s in steps: st.write(f"🔹 {s}")
+                    else:
+                        st.write("No clear 'Cause-Effect' linking words found (e.g., 'therefore', 'results in').")
+
+                # บันทึกประวัติ
+                res_df = pd.DataFrame([{"user": user, "block": case["block"], "score": total, "time": datetime.now()}])
+                try:
+                    old = pd.read_csv("responses.csv")
+                    res_df = pd.concat([old, res_df])
+                except: pass
+                res_df.to_csv("responses.csv", index=False)
+                st.toast("Progress Saved!")
+            else:
+                st.error("Submission incomplete. Diagnosis and Reasoning are mandatory.")
+
+# ===================== RIGHT SIDEBAR / COL 2 =====================
 with col2:
     st.markdown("## 👥 Team Decision Board")
     
-    # เงื่อนไข: แสดงคำตอบจากสายวิชาชีพอื่นเฉพาะเมื่อกด Submit แล้วเท่านั้น
     if st.session_state.submitted:
         ipa = case.get("interprofessional_answers", {})
         if ipa:
             for role, ans in ipa.items():
                 if role == profession:
-                    st.success(f"🟢 **{role.upper()} (Your Role):** {ans}")
+                    st.success(f"🟢 **{role.upper()} (Your Role):** \n{ans}")
                 else:
-                    st.info(f"⚪ **{role.upper()}:** {ans}")
+                    st.info(f"⚪ **{role.upper()}:** \n{ans}")
         else:
-            st.write("No interprofessional data available for this case.")
+            st.write("No interprofessional data available.")
     else:
-        st.info("🔒 **Locked**")
-        st.write("คำตอบจากทีมสหสาขาวิชาชีพจะปรากฏที่นี่ หลังจากที่คุณกดส่งคำตอบแล้ว")
+        st.info("🔒 **Interprofessional Insights Locked**")
+        st.caption("Submit your clinical decision to synchronize with the care team.")
 
     st.markdown("---")
-    st.markdown("## 📖 Reference")
+    st.markdown("## 📖 Reference & Evidence")
     ref = case.get("reference", {})
-    st.write(f"📚 {ref.get('source','-')} ({ref.get('year','-')})")
+    st.write(f"📚 **Source:** {ref.get('source','-')}")
+    st.write(f"📅 **Year:** {ref.get('year','-')}")
 
-    st.markdown("## 📊 Performance")
+    st.markdown("## 📊 Performance Analytics")
     try:
         df = pd.read_csv("responses.csv")
         user_df = df[df["user"] == user]
         if not user_df.empty:
             st.line_chart(user_df.set_index("time")["score"])
         else:
-            st.caption("Submit your first case to see progress.")
+            st.caption("No data points available yet.")
     except:
-        st.caption("No history yet.")
+        st.caption("History will appear after your first case.")
