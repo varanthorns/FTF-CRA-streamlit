@@ -1,102 +1,77 @@
 [
   {
-    "block": "Human development (Embryology+ Psychiatry)",
+    "block": "Cardiovascular",
     "difficulty": "easy",
-    "scenario": { "en": "A 24-year-old female at 8 weeks gestation. Ultrasound shows the embryo's heart is beating. She asks when the neural tube usually closes." },
-    "answer": "Week 4 (Day 28)",
-    "key_points": ["neural tube", "day 28", "folic acid"],
-    "task": { "medicine": "Explain the timing of neural tube closure.", "public_health": "Discuss folic acid supplementation." },
-    "interprofessional_answers": { "medicine": "Closure occurs by the end of week 4.", "pharmacy": "400 mcg Folic acid daily recommended." },
-    "reference": { "source": "Langman's Medical Embryology", "year": "2025" }
+    "scenario": {
+      "en": "A 55-year-old male presents with crushing substernal chest pain for 30 minutes, radiating to the left arm. He is diaphoretic and pale."
+    },
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/St-elevation.png/640px-St-elevation.png",
+    "labs": [
+      {"Test": "Troponin T", "Result": "500", "Unit": "ng/L", "Range": "< 14"},
+      {"Test": "BP", "Result": "150/90", "Unit": "mmHg", "Range": "120/80"}
+    ],
+    "answer": "Acute Myocardial Infarction",
+    "key_points": ["crushing chest pain", "radiating", "left arm", "diaphoretic", "troponin"],
+    "task": {
+      "medicine": "Establish diagnosis and immediate reperfusion strategy.",
+      "nursing": "Monitor vitals, prepare ECG, and administer oxygen if SpO2 < 94%.",
+      "pharmacy": "Prepare Aspirin 325mg and Nitroglycerin."
+    },
+    "interprofessional_answers": {
+      "medicine": "Acute STEMI. Plan for Primary PCI.",
+      "nursing": "Keep patient on bed rest, continuous cardiac monitoring.",
+      "pharmacy": "Loading dose of Aspirin and P2Y12 inhibitor."
+    },
+    "reference": {"source": "AHA STEMI Guidelines", "year": "2024"}
   },
   {
-    "block": "Biochemistry",
+    "block": "Cardiovascular",
     "difficulty": "medium",
-    "scenario": { "en": "A 3-year-old boy with developmental delay and self-mutilating behavior (biting lips/fingers). Lab shows high uric acid." },
-    "answer": "Lesch-Nyhan Syndrome",
-    "key_points": ["HGPRT deficiency", "self-mutilation", "hyperuricemia"],
-    "task": { "medicine": "What enzyme is deficient?", "pharmacy": "What medication manages the uric acid?" },
-    "interprofessional_answers": { "medicine": "Deficiency of HGPRT enzyme.", "pharmacy": "Allopurinol to reduce hyperuricemia." },
-    "reference": { "source": "Lippincott Illustrated Reviews: Biochemistry", "year": "2026" }
+    "scenario": {
+      "en": "A 70-year-old female presents with progressive shortness of breath and orthopnea. Physical exam reveals bilateral crackles and 2+ pitting edema."
+    },
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Chest_X-ray_of_heart_failure.jpg/640px-Chest_X-ray_of_heart_failure.jpg",
+    "labs": [
+      {"Test": "NT-proBNP", "Result": "4500", "Unit": "pg/mL", "Range": "< 300"},
+      {"Test": "LVEF (Echo)", "Result": "35", "Unit": "%", "Range": "> 50"}
+    ],
+    "answer": "Congestive Heart Failure",
+    "key_points": ["orthopnea", "crackles", "pitting edema", "NT-proBNP", "LVEF"],
+    "task": {
+      "medicine": "Determine the cause of dyspnea and initial management.",
+      "nursing": "Monitor fluid intake/output and weigh patient daily.",
+      "pharmacy": "Review diuretics and ACE-inhibitor dosage."
+    },
+    "interprofessional_answers": {
+      "medicine": "Acute Decompensated Heart Failure (HFrEF).",
+      "nursing": "Restrict sodium and fluid, semi-fowler position.",
+      "pharmacy": "Furosemide IV and initiate GDMT."
+    },
+    "reference": {"source": "ESC Heart Failure Guidelines", "year": "2025"}
   },
   {
-    "block": "Genetics",
+    "block": "Cardiovascular",
     "difficulty": "hard",
-    "scenario": { "en": "A newborn presents with microcephaly, polydactyly, and cleft lip/palate. Chromosomal analysis is pending." },
-    "answer": "Patau Syndrome (Trisomy 13)",
-    "key_points": ["Trisomy 13", "polydactyly", "cleft palate", "microcephaly"],
-    "task": { "medicine": "What is the most likely chromosomal abnormality?", "nursing": "Discuss palliative care support for the family." },
-    "interprofessional_answers": { "medicine": "Trisomy 13.", "nursing": "Provide emotional support and end-of-life care education." },
-    "reference": { "source": "Gardner and Sutherland's Chromosome Abnormalities", "year": "2025" }
-  },
-  {
-    "block": "Histology",
-    "difficulty": "easy",
-    "scenario": { "en": "A biopsy of the trachea is taken. The pathologist describes the epithelium." },
-    "answer": "Pseudostratified ciliated columnar epithelium",
-    "key_points": ["goblet cells", "cilia", "respiratory epithelium"],
-    "task": { "medicine": "Identify the specific epithelium type.", "ams": "Describe the staining characteristics." },
-    "interprofessional_answers": { "medicine": "Pseudostratified ciliated columnar with goblet cells.", "ams": "H&E stain shows basement membrane clearly." },
-    "reference": { "source": "Junqueria's Basic Histology", "year": "2026" }
-  },
-  {
-    "block": "Parasitology and microanatomy",
-    "difficulty": "medium",
-    "scenario": { "en": "A patient presents with perianal itching, especially at night. A 'Scotch tape test' reveals oval eggs with one flat side." },
-    "answer": "Enterobius vermicularis (Pinworm)",
-    "key_points": ["perianal itching", "nocturnal", "Enterobius", "tape test"],
-    "task": { "medicine": "What is the diagnosis?", "public_health": "How to prevent household transmission?" },
-    "interprofessional_answers": { "medicine": "Enterobiasis.", "public_health": "Treat all family members and wash linens in hot water." },
-    "reference": { "source": "CDC Parasitology Guidelines", "year": "2026" }
-  },
-  {
-    "block": "Immunology",
-    "difficulty": "hard",
-    "scenario": { "en": "A 6-month-old male has recurrent bacterial infections, chronic diarrhea, and failure to thrive. Lymphocyte count is extremely low." },
-    "answer": "Severe Combined Immunodeficiency (SCID)",
-    "key_points": ["recurrent infection", "lymphopenia", "adenosine deaminase", "IL-2R receptor"],
-    "task": { "medicine": "What is the definitive treatment?", "nursing": "Precautions for a neutropenic/immunodeficient patient." },
-    "interprofessional_answers": { "medicine": "Hematopoietic stem cell transplant.", "nursing": "Strict reverse isolation and aseptic technique." },
-    "reference": { "source": "Janeway's Immunobiology", "year": "2025" }
-  },
-  {
-    "block": "Pharmacology",
-    "difficulty": "medium",
-    "scenario": { "en": "A patient on Warfarin therapy starts taking Amiodarone. Their INR increases significantly." },
-    "answer": "CYP450 Inhibition",
-    "key_points": ["CYP2C9", "Warfarin", "interaction", "INR"],
-    "task": { "pharmacy": "Explain the mechanism of interaction.", "medicine": "How would you adjust the Warfarin dose?" },
-    "interprofessional_answers": { "pharmacy": "Amiodarone inhibits CYP2C9, decreasing Warfarin metabolism.", "medicine": "Reduce Warfarin dose by 30-50% and monitor INR." },
-    "reference": { "source": "Goodman & Gilman's: The Pharmacological Basis of Therapeutics", "year": "2026" }
-  },
-  {
-    "block": "Hematology",
-    "difficulty": "hard",
-    "scenario": { "en": "A 25-year-old African American male develops dark urine and jaundice after taking Primaquine for malaria." },
-    "answer": "G6PD Deficiency",
-    "key_points": ["Heinz bodies", "Bite cells", "oxidative stress", "X-linked"],
-    "task": { "medicine": "What would you see on a peripheral blood smear?", "pharmacy": "List other drugs to avoid." },
-    "interprofessional_answers": { "medicine": "Bite cells and Heinz bodies.", "pharmacy": "Avoid Sulfa drugs, Nitrofurantoin, and Fava beans." },
-    "reference": { "source": "Williams Hematology", "year": "2026" }
-  },
-  {
-    "block": "Nervous system",
-    "difficulty": "hard",
-    "scenario": { "en": "A 70-year-old male has resting tremor, bradykinesia, and postural instability. He also reports vivid visual hallucinations." },
-    "answer": "Lewy Body Dementia",
-    "key_points": ["Parkinsonism", "hallucinations", "fluctuating cognition"],
-    "task": { "medicine": "Differentiate from Parkinson's disease.", "nursing": "Fall prevention and safety measures." },
-    "interprofessional_answers": { "medicine": "Dementia occurs within 1 year of motor symptoms in DLB.", "nursing": "High risk of falls; use bed alarms and supervised walking." },
-    "reference": { "source": "Movement Disorder Society (MDS) Guidelines", "year": "2025" }
-  },
-  {
-    "block": "Gastrointestinal",
-    "difficulty": "medium",
-    "scenario": { "en": "A 40-year-old male with chronic alcoholism presents with hematemesis and spider angiomata. Physical exam shows shifting dullness." },
-    "answer": "Esophageal Varices due to Cirrhosis",
-    "key_points": ["portal hypertension", "hematemesis", "ascites", "cirrhosis"],
-    "task": { "medicine": "What is the first-line treatment for acute bleeding?", "nursing": "Monitor for hepatic encephalopathy signs." },
-    "interprofessional_answers": { "medicine": "Endoscopic band ligation and Octreotide.", "nursing": "Monitor conscious level and ammonia signs (asterixis)." },
-    "reference": { "source": "AASLD Practice Guidelines", "year": "2026" }
+    "scenario": {
+      "en": "A 45-year-old male with Marfan syndrome presents with sudden-onset 'tearing' chest pain radiating to the back. HR 110, BP 180/100 (Right arm) and 140/80 (Left arm)."
+    },
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Computed_tomography_of_aortic_dissection.png/640px-Computed_tomography_of_aortic_dissection.png",
+    "labs": [
+      {"Test": "D-dimer", "Result": "2500", "Unit": "ng/mL", "Range": "< 500"},
+      {"Test": "CXR", "Result": "Widened Mediastinum", "Unit": "-", "Range": "Normal"}
+    ],
+    "answer": "Aortic Dissection",
+    "key_points": ["Marfan", "tearing pain", "radiating to back", "BP differential", "widened mediastinum"],
+    "task": {
+      "medicine": "Evaluate the acute chest pain and specify the type of dissection.",
+      "nursing": "Strict BP monitoring and pain control.",
+      "pharmacy": "Prepare Esmolol drip for heart rate control."
+    },
+    "interprofessional_answers": {
+      "medicine": "Stanford Type A Aortic Dissection. Urgent surgical consult.",
+      "nursing": "Target SBP 100-120 mmHg, minimize patient agitation.",
+      "pharmacy": "Beta-blocker (Esmolol) followed by vasodilators if needed."
+    },
+    "reference": {"source": "ACC/AHA Aortic Disease Guidelines", "year": "2026"}
   }
 ]
