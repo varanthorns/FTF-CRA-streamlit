@@ -69,7 +69,7 @@ if not user: st.stop()
 # ===================== SIDEBAR =====================
 with st.sidebar:
     st.header("⚙️ Station Settings")
-    profession = st.selectbox("👩‍⚕️ Your Role", ["medicine","nursing","pharmacy","ams","public_health"])
+    profession = st.selectbox("👩‍⚕️ Your Role", ["medicine", "dentistry", "nursing","pharmacy","ams","public health", "veterinarian"])
     mode = st.radio("Mode", ["Practice", "OSCE (Timed)", "Battle (Leaderboard)"])
     
     st.divider()
