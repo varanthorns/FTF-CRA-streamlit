@@ -120,7 +120,14 @@ with col1:
         st.caption(case["additional"].get("en",""))
 
     st.markdown("## 🎯 Your Task")
-    st.warning(case["task"][profession])
+    task = case.get("task", {})
+
+    task_text = task.get(
+        profession,
+        task.get("medicine", "Provide your clinical decision")
+    )
+
+st.warning(task_text)
 
     st.markdown("## 🧠 Think Step-by-Step")
     st.caption("""
@@ -211,7 +218,9 @@ with col2:
 
     st.markdown("## 👥 Team Decision Board")
 
-    for role,ans in case["interprofessional_answers"].items():
+    ipa = case.get("interprofessional_answers", {})
+
+    for role, ans in ipa.items():
         if role == profession:
             st.success(f"🟢 {role}\n{ans}")
         else:
@@ -225,8 +234,8 @@ with col2:
     """)
 
     st.markdown("## 📖 Reference")
-    st.write(f"{case['reference']['source']} ({case['reference']['year']})")
-
+    ref = case.get("reference", {})
+    st.write(f"{ref.get('source','Unknown')} ({ref.get('year','-')})")
     # =====================
     # ANALYTICS
     # =====================
