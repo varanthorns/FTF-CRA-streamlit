@@ -59,11 +59,18 @@ def load_cases():
         with open("cases.json", "r", encoding="utf-8") as f: return json.load(f)
     # Default Mock with Evolution for Testing
     return [{
-        "block":"Cardiology", "difficulty":"hard", 
-        "scenario":{"en":"65yo Male presents with 2 hours of crushing substernal chest pain, radiating to left arm. Nausea and diaphoresis noted."}, 
-        "labs":[{"Test": "Troponin T", "Result": "480", "Unit": "ng/L", "Ref": "<14"}],
-        "answer":"Acute STEMI",
-        "evolution": "24 Hours Later: Patient develops shortness of breath, bilateral crackles on lung auscultation, and an S3 gallop. BP 90/60."
+    "block":"Cardiology", 
+    "difficulty":"hard", 
+    "scenario":{"en":"65yo Male presents with 2 hours of crushing substernal chest pain..."}, 
+    "labs":[{"Test": "Troponin T", "Result": "480", "Unit": "ng/L", "Ref": "<14"}],
+    "answer":"Acute STEMI",
+    "interprofessional_answers": {
+        "doctor": "Immediate Reperfusion (PCI) and DAPT loading.",
+        "pharmacy": "Monitor for Heparin-induced thrombocytopenia and verify statin dose.",
+        "nursing": "Frequent Vitals, Pain management, and prep for transport to Cath Lab.",
+        "ams": "Monitor Troponin trends and check for hemolysis in samples."
+    },
+    "evolution": "24 Hours Later: Patient develops shortness of breath..."
     }]
 
 all_cases = load_cases()
