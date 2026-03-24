@@ -1,77 +1,48 @@
 [
   {
+    "case_id": "CV-E-001",
     "block": "Cardiovascular",
     "difficulty": "easy",
     "scenario": {
-      "en": "A 55-year-old male presents with crushing substernal chest pain for 30 minutes, radiating to the left arm. He is diaphoretic and pale."
+      "en": "A 65-year-old male presents with crushing substernal chest pain for 30 minutes. EKG shows ST-elevation in V1-V4.",
+      "th": "ผู้ป่วยชายอายุ 65 ปี มาด้วยอาการเจ็บแน่นหน้าอกเหมือนมีอะไรทับ 30 นาที EKG พบ ST-elevation ใน V1-V4"
     },
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/St-elevation.png/640px-St-elevation.png",
     "labs": [
       {"Test": "Troponin T", "Result": "500", "Unit": "ng/L", "Range": "< 14"},
-      {"Test": "BP", "Result": "150/90", "Unit": "mmHg", "Range": "120/80"}
+      {"Test": "BP", "Result": "140/90", "Unit": "mmHg", "Range": "120/80"}
     ],
-    "answer": "Acute Myocardial Infarction",
-    "key_points": ["crushing chest pain", "radiating", "left arm", "diaphoretic", "troponin"],
-    "task": {
-      "medicine": "Establish diagnosis and immediate reperfusion strategy.",
-      "nursing": "Monitor vitals, prepare ECG, and administer oxygen if SpO2 < 94%.",
-      "pharmacy": "Prepare Aspirin 325mg and Nitroglycerin."
-    },
+    "answer": "Anterior Wall MI",
+    "must_exclude": ["Aortic Dissection", "PE", "Pneumothorax"],
+    "key_points": ["ST-elevation", "V1-V4", "Troponin"],
+    "next_step_correct": "Emergency Procedure",
+    "dispo_correct": "Admit ICU/CCU",
     "interprofessional_answers": {
-      "medicine": "Acute STEMI. Plan for Primary PCI.",
-      "nursing": "Keep patient on bed rest, continuous cardiac monitoring.",
-      "pharmacy": "Loading dose of Aspirin and P2Y12 inhibitor."
-    },
-    "reference": {"source": "AHA STEMI Guidelines", "year": "2024"}
+      "medicine": "Activate Cath Lab for primary PCI immediately.",
+      "pharmacy": "Aspirin 300mg chew, P2Y12 inhibitor, and Heparin.",
+      "nursing": "Continuous EKG monitoring and oxygen if Sat < 94%."
+    }
   },
   {
-    "block": "Cardiovascular",
+    "case_id": "RS-M-001",
+    "block": "Respiratory",
     "difficulty": "medium",
     "scenario": {
-      "en": "A 70-year-old female presents with progressive shortness of breath and orthopnea. Physical exam reveals bilateral crackles and 2+ pitting edema."
+      "en": "A 24-year-old female presents with sudden onset dyspnea and pleuritic chest pain. She has a history of long-haul flight 2 days ago.",
+      "th": "ผู้ป่วยหญิงอายุ 24 ปี มาด้วยอาการเหนื่อยหอบเฉียบพลันและเจ็บหน้าอกเวลาหายใจ มีประวัติเดินทางไกล 2 วันก่อน"
     },
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Chest_X-ray_of_heart_failure.jpg/640px-Chest_X-ray_of_heart_failure.jpg",
     "labs": [
-      {"Test": "NT-proBNP", "Result": "4500", "Unit": "pg/mL", "Range": "< 300"},
-      {"Test": "LVEF (Echo)", "Result": "35", "Unit": "%", "Range": "> 50"}
+      {"Test": "D-Dimer", "Result": "2500", "Unit": "ng/mL", "Range": "< 500"},
+      {"Test": "Heart Rate", "Result": "118", "Unit": "bpm", "Range": "60-100"}
     ],
-    "answer": "Congestive Heart Failure",
-    "key_points": ["orthopnea", "crackles", "pitting edema", "NT-proBNP", "LVEF"],
-    "task": {
-      "medicine": "Determine the cause of dyspnea and initial management.",
-      "nursing": "Monitor fluid intake/output and weigh patient daily.",
-      "pharmacy": "Review diuretics and ACE-inhibitor dosage."
-    },
+    "answer": "Pulmonary Embolism",
+    "must_exclude": ["MI", "Pneumothorax", "Sepsis"],
+    "key_points": ["Sudden dyspnea", "D-Dimer", "Tachycardia"],
+    "next_step_correct": "Start Medication",
+    "dispo_correct": "Admit General Ward",
     "interprofessional_answers": {
-      "medicine": "Acute Decompensated Heart Failure (HFrEF).",
-      "nursing": "Restrict sodium and fluid, semi-fowler position.",
-      "pharmacy": "Furosemide IV and initiate GDMT."
-    },
-    "reference": {"source": "ESC Heart Failure Guidelines", "year": "2025"}
-  },
-  {
-    "block": "Cardiovascular",
-    "difficulty": "hard",
-    "scenario": {
-      "en": "A 45-year-old male with Marfan syndrome presents with sudden-onset 'tearing' chest pain radiating to the back. HR 110, BP 180/100 (Right arm) and 140/80 (Left arm)."
-    },
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Computed_tomography_of_aortic_dissection.png/640px-Computed_tomography_of_aortic_dissection.png",
-    "labs": [
-      {"Test": "D-dimer", "Result": "2500", "Unit": "ng/mL", "Range": "< 500"},
-      {"Test": "CXR", "Result": "Widened Mediastinum", "Unit": "-", "Range": "Normal"}
-    ],
-    "answer": "Aortic Dissection",
-    "key_points": ["Marfan", "tearing pain", "radiating to back", "BP differential", "widened mediastinum"],
-    "task": {
-      "medicine": "Evaluate the acute chest pain and specify the type of dissection.",
-      "nursing": "Strict BP monitoring and pain control.",
-      "pharmacy": "Prepare Esmolol drip for heart rate control."
-    },
-    "interprofessional_answers": {
-      "medicine": "Stanford Type A Aortic Dissection. Urgent surgical consult.",
-      "nursing": "Target SBP 100-120 mmHg, minimize patient agitation.",
-      "pharmacy": "Beta-blocker (Esmolol) followed by vasodilators if needed."
-    },
-    "reference": {"source": "ACC/AHA Aortic Disease Guidelines", "year": "2026"}
+      "medicine": "CT Pulmonary Angiogram to confirm, then Anticoagulation.",
+      "pharmacy": "Enoxaparin or Unfractionated Heparin infusion.",
+      "nursing": "Monitor O2 saturation and signs of bleeding."
+    }
   }
 ]
