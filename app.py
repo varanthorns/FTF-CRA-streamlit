@@ -76,44 +76,107 @@ with st.sidebar:
             st.rerun()
 
 # ===================== 6. PAGES =====================
-
-# --- 📖 MANUAL & STANDARDS ---
+# --- 📖 MANUAL & STANDARDS (NEW UPGRADED) ---
 if menu == "📖 Manual & Standards":
     st.header("📖 Clinical Operations & User Guide")
-    st.markdown("### **ACLR Platform v9.9.1**")
+    st.markdown("### **ACLR Platform v9.9**")
+    st.write("*Adaptive Cognitive Load–Driven AI Clinical Reasoning Loop*")
     
-    with st.expander("🌐 1. System Philosophy & Objectives", expanded=True):
+    # --- SECTION 1: SYSTEM PHILOSOPHY (The "Why") ---
+    with st.expander("🌐 1. System Philosophy & Objectives (หลักการและวัตถุประสงค์)", expanded=True):
         st.markdown("""
         <div style="background-color: #E3F2FD; padding: 20px; border-radius: 10px; border-left: 5px solid #1976D2;">
             <h4 style="color: #1976D2;">Core Objective | วัตถุประสงค์หลัก</h4>
-            <p>To bridge the gap between medical theory and bedside practice. The system manages <b>Cognitive Load</b> by filtering complex clinical data.</p>
+            <p>To bridge the gap between medical theory and bedside practice. The system manages <b>Cognitive Load</b> by filtering complex clinical data into structured blocks, allowing learners to focus on critical decision-making without information overload.</p>
+            <hr>
+            <p>เพื่อลดช่องว่างระหว่างทฤษฎีและการปฏิบัติจริง ระบบจะบริหารจัดการ <b>ภาระทางพุทธิปัญญา (Cognitive Load)</b> โดยการกรองข้อมูลทางคลินิกที่ซับซ้อนให้เป็นส่วนๆ ช่วยให้ผู้เรียนโฟกัสที่การตัดสินใจสำคัญได้โดยไม่เกิดสภาวะข้อมูลล้น (Information Overload)</p>
         </div>
         """, unsafe_allow_html=True)
 
-    st.subheader("🚀 2. Operational Workflow")
+    # --- SECTION 2: OPERATIONAL WORKFLOW (The "How") ---
+    st.divider()
+    st.subheader("🚀 2. Operational Workflow (ขั้นตอนการใช้งานอย่างละเอียด)")
+    
     w1, w2, w3 = st.columns(3)
     with w1:
-        st.markdown("<div style='background-color: #FFF3E0; padding: 20px; border-radius: 10px; min-height: 250px;'><h4>Step 1: Calibration</h4><p>Set Role, Block, and Difficulty in sidebar.</p></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background-color: #FFF3E0; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #E65100;">
+            <h4 style="color: #E65100;">Step 1: Calibration<br>(การปรับตั้งค่า)</h4>
+            <p><b>Configuration:</b></p>
+            <ul>
+                <li><b>Identity:</b> Enter name for tracking.</li>
+                <li><b>Role Selection:</b> Choose your profession to trigger <i>Dynamic UI</i>.</li>
+                <li><b>Filter:</b> Select Medical Block (e.g., Cardio) and Difficulty level.</li>
+            </ul>
+            <p><i>ระบบจะปรับฟิลด์การกรอกข้อมูลให้ตรงตามบทบาทวิชาชีพของคุณโดยเฉพาะ (Dynamic UI Adaptive)</i></p>
+        </div>
+        """, unsafe_allow_html=True)
+        
     with w2:
-        st.markdown("<div style='background-color: #E8F5E9; padding: 20px; border-radius: 10px; min-height: 250px;'><h4>Step 2: Synthesis</h4><p>Analyze Scenario and Lab results in the Simulator.</p></div>", unsafe_allow_html=True)
-    with w3:
-        st.markdown("<div style='background-color: #F3E5F5; padding: 20px; border-radius: 10px; min-height: 250px;'><h4>Step 3: Execution</h4><p>Submit Diagnosis and Rationale for AI evaluation.</p></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background-color: #E8F5E9; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #2E7D32;">
+            <h4 style="color: #2E7D32;">Step 2: Synthesis<br>(การวิเคราะห์ข้อมูล)</h4>
+            <p><b>Data Analysis:</b></p>
+            <ul>
+                <li><b>Scenario:</b> Read the clinical history carefully.</li>
+                <li><b>Diagnostics:</b> Interpret Lab results and Imaging data provided.</li>
+                <li><b>Red Flags:</b> Identify life-threatening indicators.</li>
+            </ul>
+            <p><i>วิเคราะห์ความเชื่อมโยงระหว่างอาการแสดงและผลทางห้องปฏิบัติการเพื่อหาข้อสรุปทางคลินิก</i></p>
+        </div>
+        """, unsafe_allow_html=True)
 
+    with w3:
+        st.markdown("""
+        <div style="background-color: #F3E5F5; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #7B1FA2;">
+            <h4 style="color: #7B1FA2;">Step 3: Execution<br>(การลงมือปฏิบัติ)</h4>
+            <p><b>Clinical Decision:</b></p>
+            <ul>
+                <li><b>Diagnosis:</b> Formulate definitive assessment.</li>
+                <li><b>Rationale:</b> Explain the <i>Pathophysiology</i> behind your choice.</li>
+                <li><b>Submission:</b> Send to AI for real-time feedback.</li>
+            </ul>
+            <p><i>บันทึกเหตุผลเชิงลึกเพื่อให้ AI Mentor ประเมินตรรกะและการให้เหตุผล (Clinical Reasoning)</i></p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # --- SECTION 3: DYNAMIC LOGIC MATRIX ---
     st.divider()
-    st.subheader("🧬 3. Interprofessional Dynamic Logic")
-    st.write("UI adapts to reflect your real-world responsibilities:")
+    st.subheader("🧬 3. Interprofessional Dynamic Logic (ตรรกะรายวิชาชีพ)")
+    st.info("UI จะปรับเปลี่ยนตามบทบาทวิชาชีพเพื่อจำลองสถานการณ์จริง (Role-Based Simulation)")
+    
     r1, r2 = st.columns(2)
     with r1:
-        st.markdown("- <b style='color:#1976D2;'>Doctor/Dentist:</b> Focus on DDx & Treatment.", unsafe_allow_html=True)
-        st.markdown("- <b style='color:#D32F2F;'>Pharmacy:</b> Focus on Dosing & Interaction.", unsafe_allow_html=True)
+        st.markdown("""
+        - <b style="color:#1976D2;">🩺 Doctor/Dentist:</b> Focus on <i>Differential Diagnosis (DDx)</i> and definitive interventions. (เน้นการวินิจฉัยแยกโรคและการรักษาหลัก)
+        - <b style="color:#D32F2F;">💊 Pharmacy:</b> Focus on <i>Pharmacotherapy</i>, Dosing, and Drug Interactions. (เน้นขนาดยา ความปลอดภัย และอันตรกิริยาระหว่างยา)
+        - <b style="color:#388E3C;">🏥 Nursing:</b> Focus on <i>Vitals Monitoring</i> and immediate stabilization. (เน้นการเฝ้าระวังสัญญาณชีพและการจัดการเบื้องต้น)
+        """, unsafe_allow_html=True)
     with r2:
-        st.markdown("- <b style='color:#388E3C;'>Nursing:</b> Focus on Vitals & Stabilization.", unsafe_allow_html=True)
-        st.markdown("- <b style='color:#7B1FA2;'>AMS/Public Health:</b> Focus on Labs & Outbreak.", unsafe_allow_html=True)
+        st.markdown("""
+        - <b style="color:#FBC02D;">🔬 AMS:</b> Focus on <i>Lab Validity</i> and Diagnostic interpretation. (เน้นความถูกต้องของผลแล็บและการแปลผลเชิงลึก)
+        - <b style="color:#7B1FA2;">🐾 Vet / 🌏 Public Health:</b> Focus on <i>Zoonosis</i> and <i>Epidemiology</i>. (เน้นโรคติดต่อระหว่างสัตว์สู่คนและการควบคุมระดับประชากร)
+        """, unsafe_allow_html=True)
+
+    # --- SECTION 4: SCORING & AI MENTOR ---
+    st.divider()
+    st.subheader("📊 4. Evaluation Matrix (เกณฑ์การประเมิน 10 คะแนน)")
+    
+    st.markdown("""
+    | Evaluation Criteria | Weight | What AI Looks For? (AI ตรวจสอบอะไร?) |
+    | :--- | :--- | :--- |
+    | **Clinical Accuracy** | 40% | Alignment with **Gold Standard** diagnosis. (ความถูกต้องของการวินิจฉัย) |
+    | **Logical Rationale** | 30% | Deep understanding of **Pathophysiology**. (ความเข้าใจในพยาธิสรีรวิทยา) |
+    | **Patient Safety** | 20% | Correct **Disposition** and Next Steps. (การเลือกสถานที่รักษาและขั้นตอนถัดไป) |
+    | **Professionalism** | 10% | Confidence level and Risk acknowledgement. (ความมั่นใจและการตระหนักถึงความเสี่ยง) |
+    """)
+    
+    st.success("""
+    💡 **AI Mentor (Gemini 1.5 Flash):** ระบบไม่ได้ทำหน้าที่เพียงแค่ 'ตรวจถูก/ผิด' แต่จะมอบ **'Professional Pearls'** ซึ่งเป็นเกร็ดความรู้จากประสบการณ์ระดับ Senior Consultant เพื่อพัฒนาทักษะการคิดขั้นสูง (Metacognition).
+    """)
 
     st.divider()
-    st.subheader("📊 4. Scoring Matrix")
-    st.markdown("| Criteria | Weight | Description |\n| :--- | :--- | :--- |\n| **Accuracy** | 40% | Gold Standard alignment |\n| **Rationale** | 30% | Pathophysiology logic |\n| **Safety** | 20% | Disposition & Next Steps |\n| **Professional** | 10% | Risk awareness |")
-
+    st.caption("Educational Reference Standards: Harrison's Principles of Internal Medicine 21st Ed, AHA/ACC 2024, IDSA, and WHO Guidelines.")
 # --- 🧪 CLINICAL SIMULATOR ---
 elif menu == "🧪 Clinical Simulator":
     c = st.session_state.case
