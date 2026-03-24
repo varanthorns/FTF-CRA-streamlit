@@ -104,7 +104,7 @@ with st.sidebar:
     page = st.radio("Navigation", ["📖 User Guide", "🧪 Clinical Simulator", "🏆 Leaderboard"])
     
     st.divider()
-    user_id = st.text_input("👤 User ID", value="Doctor_X")
+    user_id = st.text_input("👤 User ID", value="Doctor")
     profession = st.selectbox("👩‍⚕️ Your Role", ["medicine", "nursing", "pharmacy", "dentistry", "ams", "public health"])
     
     if page == "🧪 Clinical Simulator":
