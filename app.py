@@ -11,7 +11,7 @@ st.set_page_config(layout="wide", page_title="ACLR Ultimate Clinical Reasoning")
 
 # ===================== 2. EVALUATION LOGIC =====================
 def evaluate_base(dx, reasoning, case, profession):
-    """ฟังก์ชันพื้นฐานสำหรับคำนวณคะแนน Dx, Evidence และ Logic"""
+    """คำนวณคะแนนพื้นฐาน (Dx, Evidence, Logic)"""
     target = case.get("interprofessional_answers", {}).get(profession, case.get("answer", ""))
     
     # 1. Accuracy Score (5 pts)
@@ -33,20 +33,18 @@ def evaluate_base(dx, reasoning, case, profession):
     return dx_score, r_score, d_score, target, found_keys, level
 
 def evaluate_pro(dx, reasoning, case, profession, confidence, selected_ddx):
-    """ฟังก์ชันประเมินผลระดับสูง รวมระบบ Safety และ Confidence"""
+    """คำนวณคะแนนระดับสูง (Safety + Calibration)"""
     dx_s, r_s, d_s, target, used, level = evaluate_base(dx, reasoning, case, profession)
     total_base = dx_s + r_s + d_s
 
-    # 1. DDx Safety Check (ตรวจสอบโรคอันตรายที่ห้ามพลาด)
-    must_exclude = case.get("must_exclude", ["Aortic Dissection", "PE"])
+    # Safety Check
+    must_exclude = case.get("must_exclude", [])
     safety_score = 1 if all(item in selected_ddx for item in must_exclude) else -1
     
-    # 2. Confidence Calibration
+    # Confidence Bonus/Penalty
     bonus = 0
-    if level == "correct" and confidence > 80:
-        bonus = 1 
-    elif level == "wrong" and confidence > 90:
-        bonus = -2 # Dangerous Overconfidence Penalty
+    if level == "correct" and confidence > 80: bonus = 1 
+    elif level == "wrong" and confidence > 90: bonus = -2 
 
     final_score = max(0, min(10, total_base + safety_score + bonus))
     return final_score, dx_s, r_s, d_s, safety_score, target, used, level
@@ -54,157 +52,138 @@ def evaluate_pro(dx, reasoning, case, profession, confidence, selected_ddx):
 # ===================== 3. DATA LOADING =====================
 def safe_case(case):
     case.setdefault("block", "General")
-    case.setdefault("difficulty", "medium")
-    case.setdefault("must_exclude", ["Aortic Dissection", "PE"])
+    case.setdefault("difficulty", "easy")
+    case.setdefault("must_exclude", [])
     case.setdefault("key_points", [])
     case.setdefault("labs", [])
-    case.setdefault("scenario", {"en": "A 62-year-old male presents with acute substernal chest pain. EKG shows ST-elevation in II, III, aVF."})
-    case.setdefault("answer", "Inferior Wall MI")
-    case.setdefault("interprofessional_answers", {
-        "medicine": "Primary PCI within 90 mins", 
-        "pharmacy": "Aspirin 300mg + Heparin bolus",
-        "nursing": "Monitor BP and Right-sided EKG"
-    })
+    case.setdefault("scenario", {"en": "No scenario."})
+    case.setdefault("answer", "Unknown")
+    case.setdefault("interprofessional_answers", {})
     return case
 
 @st.cache_data
 def load_cases():
     try:
-        with open("cases.json","r",encoding="utf-8") as f:
+        with open("cases.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return [safe_case(c) for c in data]
     except FileNotFoundError:
-        return [safe_case({})]
+        return [safe_case({
+            "block": "Cardiovascular", "difficulty": "easy",
+            "scenario": {"en": "65M with chest pain, ST-elevation V1-V4."},
+            "answer": "Anterior Wall MI", "must_exclude": ["PE", "Aortic Dissection"],
+            "key_points": ["ST-elevation", "V1-V4"]
+        })]
 
 cases = load_cases()
 
 # ===================== 4. SESSION STATE =====================
 if "case" not in st.session_state:
-    st.session_state.case = random.choice(cases)
+    st.session_state.case = cases[0]
 if "submitted" not in st.session_state:
     st.session_state.submitted = False
 if "voice_text" not in st.session_state:
     st.session_state.voice_text = ""
 
-# ===================== 5. SIDEBAR =====================
+# ===================== 5. SIDEBAR (FILTERS) =====================
 with st.sidebar:
     st.title("🧠 ACLR Professional")
     page = st.radio("Navigation", ["📖 User Guide", "🧪 Clinical Simulator", "🏆 Leaderboard"])
-    st.divider()
-    user_id = st.text_input("👤 User ID", value="Doctor")
-    profession = st.selectbox("👩‍⚕️ Your Role", ["medicine", "nursing", "pharmacy", "dentistry", "ams", "public health"])
     
-    if page == "🧪 Clinical Simulator":
-        if st.button("🔄 Next Random Case"):
-            st.session_state.case = random.choice(cases)
+    st.divider()
+    st.subheader("🎯 Station Selection")
+    sel_block = st.selectbox("Select Block", ["All"] + list(set(c['block'] for c in cases)))
+    sel_diff = st.select_slider("Select Difficulty", options=["easy", "medium", "hard"])
+    
+    if st.button("🔄 Generate New Case"):
+        filtered = [c for c in cases if (sel_block == "All" or c['block'] == sel_block) and (c['difficulty'] == sel_diff)]
+        if filtered:
+            st.session_state.case = random.choice(filtered)
             st.session_state.submitted = False
             st.session_state.voice_text = ""
             st.rerun()
-
-# ===================== 6. PAGE LOGIC =====================
-
-# --- PAGE 1: USER GUIDE (DETAILED) ---
-if page == "📖 User Guide":
-    st.header("📖 Clinical Reasoning Manual: ACLR Loop")
-    
-    st.subheader("🎯 วัตถุประสงค์ของระบบ (Educational Philosophy)")
-    st.write("""
-    ระบบ **ACLR (Advanced Clinical Reasoning)** ไม่ใช่เครื่องมือทำข้อสอบทั่วไป แต่เป็น **Cognitive Simulator** ที่ออกแบบมาเพื่อฝึกทักษะการตัดสินใจในสภาวะจำลอง โดยเน้นการดึงความรู้จากสมอง (Active Recall) และความปลอดภัยของผู้ป่วย (Patient Safety)
-    """)
-
-    col_guide1, col_guide2 = st.columns(2)
-    with col_guide1:
-        st.markdown("### 🛠 ขั้นตอนการใช้งาน")
-        st.markdown("""
-        1. **Information Gathering:** วิเคราะห์ Scenario และผล Lab อย่างละเอียด
-        2. **Differential Diagnosis:** เลือกกลุ่มโรคที่ต้องเฝ้าระวัง (Red Flags)
-        3. **Formulation:** พิมพ์วินิจฉัยและระบุเหตุผลทางพยาธิสภาพ
-        4. **Calibration:** ประเมินความมั่นใจของตนเอง (Metacognition)
-        5. **Team Debriefing:** เรียนรู้จากมุมมองสหสาขาวิชาชีพ
-        """)
-        
-    
-    with col_guide2:
-        st.markdown("### 📊 Scoring Rubric (10 Points)")
-        rubric_data = {
-            "หมวดหมู่": ["Diagnosis", "Evidence", "Logic Flow", "Safety"],
-            "คะแนน": ["5", "3", "2", "+/- Bonus"],
-            "คำอธิบาย": [
-                "ความถูกต้องตามมาตรฐานการวินิจฉัย",
-                "การระบุ Keyword สำคัญในเหตุผล",
-                "การใช้คำเชื่อมเหตุและผล (เนื่องจาก... จึง...)",
-                "หักคะแนนหากลืม Red Flags หรือมั่นใจผิดที่"
-            ]
-        }
-        st.table(pd.DataFrame(rubric_data))
+        else:
+            st.warning("No cases found for this criteria!")
 
     st.divider()
-    st.subheader("👥 ระบบ Team Board (Interprofessional Insight)")
-    st.write("หัวใจของการรักษาคือการทำงานเป็นทีม หลังส่งคำตอบคุณจะพบกับ Insight จากวิชาชีพอื่น:")
-    col_t1, col_t2, col_t3 = st.columns(3)
-    col_t1.info("**Medicine:** เป้าหมายการรักษาหลัก (Definitive Rx)")
-    col_t2.success("**Pharmacy:** การบริหารยาและข้อควรระวัง (Drug Safety)")
-    col_t3.warning("**Nursing:** การพยาบาลและการเฝ้าระวัง (Monitoring)")
-    
+    user_id = st.text_input("👤 User ID", value="Doctor_X")
+    profession = st.selectbox("👩‍⚕️ Your Role", ["medicine", "nursing", "pharmacy", "ams"])
 
-# --- PAGE 2: SIMULATOR ---
+# ===================== 6. MAIN CONTENT =====================
+
+# --- PAGE: USER GUIDE ---
+if page == "📖 User Guide":
+    st.header("📖 Clinical Reasoning Manual: ACLR Loop")
+    st.write("ระบบจำลองการตัดสินใจทางคลินิก (Cognitive Simulator) เพื่อฝึกการวินิจฉัยอย่างเป็นระบบ")
+    
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        st.subheader("🛠 Workflow")
+        st.markdown("""
+        1. **Data Synthesis:** วิเคราะห์ Scenario และ Lab (Tab 1 & 2)
+        2. **Must-Exclude DDx:** เลือกโรคอันตรายที่ห้ามพลาด
+        3. **Formulation:** อธิบายเหตุผลพยาธิสภาพ (Tab 3)
+        4. **Calibration:** ระบุความมั่นใจ (Confidence Score)
+        """)
+    with col_g2:
+        st.subheader("📊 Scoring (10 Points)")
+        st.write("- **Dx (5):** ความถูกต้องของโรค")
+        st.write("- **Evidence (3):** การดึงจุดสำคัญมาอธิบาย")
+        st.write("- **Logic (2):** การใช้คำเชื่อมเหตุและผล")
+        st.error("⚠️ หักคะแนน: หากลืม Red Flags หรือมั่นใจผิดที่")
+
+# --- PAGE: SIMULATOR ---
 elif page == "🧪 Clinical Simulator":
     case = st.session_state.case
-    st.title(f"🏥 Station: {case['block']} ({case['difficulty'].upper()})")
+    st.title(f"🏥 Station: {case['block']} | Level: {case['difficulty'].upper()}")
     
     col1, col2 = st.columns([2, 1])
     with col1:
-        tab1, tab2, tab3 = st.tabs(["📋 Scenario", "🧪 Diagnostics", "✍️ Analysis & Decision"])
-        with tab1:
+        t1, t2, t3 = st.tabs(["📋 Scenario", "🧪 Diagnostics", "✍️ Analysis"])
+        with t1:
             st.info(case["scenario"].get("en", ""))
-            if case.get("image_url"):
-                st.image(case["image_url"], caption="Clinical Presentation", use_container_width=True)
-        with tab2:
-            st.markdown("### 🔬 Laboratory Findings")
+            if case.get("image_url"): st.image(case["image_url"], use_container_width=True)
+        with t2:
             if case["labs"]: st.table(pd.DataFrame(case["labs"]))
-            else: st.write("No lab data provided.")
-        with tab3:
+            else: st.write("No specific labs.")
+        with t3:
             st.warning(f"**Task:** วินิจฉัยและอธิบายเหตุผลในบทบาท {profession.upper()}")
+            # Voice Recorder
             audio = mic_recorder(start_prompt="🎙️ Record Summary", stop_prompt="Stop", key='recorder')
-            if audio: st.session_state.voice_text = f"Input received (Suspected {case['answer']})"
+            if audio: st.session_state.voice_text = f"Input processed: {case['answer']} suspected."
             
-            selected_ddx = st.multiselect("🔍 Must-Exclude Differential Diagnosis (Red Flags)", 
-                                          ["MI", "PE", "Aortic Dissection", "Sepsis", "Pneumothorax", "GERD"])
-            dx_input = st.text_input("🩺 Final Diagnosis", value=st.session_state.voice_text)
-            reason_input = st.text_area("✍️ Pathophysiological Reasoning", placeholder="เช่น เนื่องจาก... จึงทำให้เกิด...")
-            conf_input = st.slider("🎯 Confidence Level (%)", 0, 100, 50)
+            selected_ddx = st.multiselect("🔍 Must-Exclude (Red Flags)", ["MI", "PE", "Aortic Dissection", "Sepsis", "Pneumothorax"])
+            dx_in = st.text_input("🩺 Final Diagnosis", value=st.session_state.voice_text)
+            re_in = st.text_area("✍️ Pathophysiological Reasoning", placeholder="เหตุผลเพราะว่า...")
+            conf_in = st.slider("🎯 Confidence Level (%)", 0, 100, 50)
             
             if st.button("✅ Submit Decision"):
-                if dx_input and reason_input:
+                if dx_in and re_in:
                     st.session_state.submitted = True
                     st.rerun()
-                else: st.error("Please fill in Diagnosis and Reasoning.")
+                else: st.error("Please fill all fields.")
 
     if st.session_state.submitted:
         st.divider()
-        score, dx_s, r_s, d_s, s_s, target, used, level = evaluate_pro(dx_input, reason_input, case, profession, conf_input, selected_ddx)
-        c_l, c_r = st.columns([2, 1])
-        with c_l:
-            st.subheader(f"📊 Assessment: {score}/10")
-            st.progress(score * 10)
+        sc, dx_s, r_s, d_s, s_s, target, used, level = evaluate_pro(dx_in, re_in, case, profession, conf_in, selected_ddx)
+        cl, cr = st.columns([2, 1])
+        with cl:
+            st.subheader(f"📊 Score: {sc}/10")
+            st.progress(sc * 10)
             m1, m2, m3, m4 = st.columns(4)
-            m1.metric("Dx Accuracy", f"{dx_s}/5")
-            m2.metric("Evidence", f"{r_s}/3")
-            m3.metric("Logic Flow", f"{d_s}/2")
-            m4.metric("Safety", "PASS" if s_s > 0 else "FAIL", delta=s_s)
+            m1.metric("Dx", f"{dx_s}/5"); m2.metric("Evidence", f"{r_s}/3")
+            m3.metric("Logic", f"{d_s}/2"); m4.metric("Safety", "PASS" if s_s > 0 else "FAIL", delta=s_s)
             st.write(f"**Correct Dx:** `{target}`")
-            if s_s < 0: st.error(f"❌ Safety Warning: You missed critical Red Flags: {', '.join(case['must_exclude'])}")
-            if level == "wrong" and conf_input > 90: st.error("⚠️ Overconfidence Alert: Incorrect diagnosis with very high confidence is dangerous.")
-        with c_r:
+            if s_s < 0: st.error(f"❌ Safety Warning: Missed {', '.join(case['must_exclude'])}")
+        with cr:
             st.subheader("👥 Team Feedback")
             for role, ans in case.get("interprofessional_answers", {}).items():
                 with st.expander(f"From {role.upper()}"): st.write(ans)
 
-# --- PAGE 3: LEADERBOARD ---
+# --- PAGE: LEADERBOARD ---
 elif page == "🏆 Leaderboard":
     st.header("🏆 Performance Dashboard")
-    st.info("Leaderboard will populate here based on responses.csv")
-    st.dataframe(pd.DataFrame({"User": [user_id], "Block": ["Cardiovascular"], "Score": ["-"], "Status": ["In Progress"]}))
+    st.dataframe(pd.DataFrame({"User": [user_id], "Score": ["-"], "Block": ["-"]}))
 
 st.markdown("---")
-st.caption("ACLR Professional v3.6 | Master Edition 2026 | Simulation-Based Clinical Education")
+st.caption("ACLR Ultimate v3.8 | Simulation-Based Clinical Education 2026")
