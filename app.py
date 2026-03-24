@@ -102,13 +102,13 @@ with st.sidebar:
             st.rerun()
 
 # ===================== 6. PAGES =====================
-
 # --- 📖 MANUAL & STANDARDS (UPGRADED ENGLISH EDITION) ---
 if menu == "📖 Manual & Standards":
     st.header("📖 Clinical Operations & User Guide")
-    st.markdown("### **ACLR Platform**")
+    st.markdown("### **ACLR Platform v9.9**")
     st.write("*Adaptive Cognitive Load–Driven AI Clinical Reasoning Loop*")
     
+    # --- SECTION 1: SYSTEM PHILOSOPHY ---
     with st.expander("🌐 1. System Philosophy & Objectives", expanded=True):
         st.markdown("""
         <div style="background-color: #E3F2FD; padding: 20px; border-radius: 10px; border-left: 5px solid #1976D2;">
@@ -117,29 +117,88 @@ if menu == "📖 Manual & Standards":
         </div>
         """, unsafe_allow_html=True)
 
+    # --- SECTION 2: OPERATIONAL WORKFLOW ---
     st.divider()
     st.subheader("🚀 2. Operational Workflow")
+    
     w1, w2, w3 = st.columns(3)
     with w1:
-        st.markdown("<div style='background-color: #FFF3E0; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #E65100;'><h4>Step 1: Calibration</h4><p>Set Role, Block, and Difficulty in sidebar.</p></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background-color: #FFF3E0; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #E65100;">
+            <h4 style="color: #E65100;">Step 1: Calibration</h4>
+            <p><b>Configuration:</b></p>
+            <ul>
+                <li><b>Identity:</b> Enter practitioner name for performance tracking.</li>
+                <li><b>Role Selection:</b> Choose your specific profession to activate the <i>Adaptive Dynamic UI</i>.</li>
+                <li><b>System Filter:</b> Select the specialized Medical Block and Difficulty level.</li>
+            </ul>
+            <p><i>The platform adapts input fields to match your professional scope of practice.</i></p>
+        </div>
+        """, unsafe_allow_html=True)
+        
     with w2:
-        st.markdown("<div style='background-color: #E8F5E9; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #2E7D32;'><h4>Step 2: Synthesis</h4><p>Analyze scenarios and diagnostic data in real-time.</p></div>", unsafe_allow_html=True)
-    with w3:
-        st.markdown("<div style='background-color: #F3E5F5; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #7B1FA2;'><h4>Step 3: Execution</h4><p>Submit clinical decisions for AI pedagogical feedback.</p></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background-color: #E8F5E9; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #2E7D32;">
+            <h4 style="color: #2E7D32;">Step 2: Synthesis</h4>
+            <p><b>Data Analysis:</b></p>
+            <ul>
+                <li><b>Clinical Scenario:</b> Review patient history and presenting symptoms.</li>
+                <li><b>Diagnostic Data:</b> Interpret Lab results, vitals, and Imaging data provided in the integrated table.</li>
+                <li><b>Critical Indicators:</b> Identify Red Flags and life-threatening conditions.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
+    with w3:
+        st.markdown("""
+        <div style="background-color: #F3E5F5; padding: 20px; border-radius: 10px; min-height: 380px; border-top: 5px solid #7B1FA2;">
+            <h4 style="color: #7B1FA2;">Step 3: Execution</h4>
+            <p><b>Clinical Decision:</b></p>
+            <ul>
+                <li><b>Diagnosis:</b> Formulate a definitive clinical assessment.</li>
+                <li><b>Rationale:</b> Detail the <i>Pathophysiology</i> and evidence supporting your decision.</li>
+                <li><b>AI Debriefing:</b> Submit your entry for real-time pedagogical feedback.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # --- SECTION 3: DYNAMIC LOGIC MATRIX ---
     st.divider()
     st.subheader("🧬 3. Interprofessional Dynamic Logic")
+    st.info("The UI dynamically morphs based on your professional role to simulate real-world multidisciplinary environments.")
+    
     r1, r2 = st.columns(2)
     with r1:
-        st.markdown("- <b style='color:#1976D2;'>Doctor/Dentist:</b> DDx & Definitive Treatment.")
-        st.markdown("- <b style='color:#D32F2F;'>Pharmacy:</b> Pharmacotherapy & Dosing.")
+        st.markdown("""
+        - <b style="color:#1976D2;">🩺 Doctor/Dentist:</b> Primary focus on <i>Differential Diagnosis (DDx)</i> and definitive interventions.
+        - <b style="color:#D32F2F;">💊 Pharmacy:</b> Emphasis on <i>Pharmacotherapy</i>, Dosing precision, and Drug-Drug Interactions.
+        - <b style="color:#388E3C;">🏥 Nursing:</b> Focus on <i>Vitals Monitoring</i>, stabilization, and immediate nursing care plans.
+        """, unsafe_allow_html=True)
     with r2:
-        st.markdown("- <b style='color:#388E3C;'>Nursing:</b> Vitals & Stabilization.")
-        st.markdown("- <b style='color:#FBC02D;'>AMS/Public Health:</b> Labs & Epidemiology.")
+        st.markdown("""
+        - <b style="color:#FBC02D;">🔬 AMS:</b> Critical focus on <i>Lab Validity</i>, specimen integrity, and advanced diagnostic interpretation.
+        - <b style="color:#7B1FA2;">🐾 Vet / 🌏 Public Health:</b> Focus on <i>Zoonotic links</i>, Epidemiology, and population-level safety protocols.
+        """, unsafe_allow_html=True)
+
+    # --- SECTION 4: EVALUATION MATRIX ---
+    st.divider()
+    st.subheader("📊 4. Evaluation Matrix (10-Point Scale)")
+    
+    st.markdown("""
+    | Evaluation Criteria | Weight | AI Mentor Focus |
+    | :--- | :--- | :--- |
+    | **Clinical Accuracy** | 40% | Alignment with **Gold Standard** evidence-based diagnosis. |
+    | **Logical Rationale** | 30% | Demonstration of deep **Pathophysiological** understanding. |
+    | **Patient Safety** | 20% | Appropriate **Disposition** (ICU vs Ward) and prioritized Next Steps. |
+    | **Professionalism** | 10% | Confidence levels and proactive risk acknowledgement. |
+    """)
+    
+    st.success("""
+    💡 **AI Mentor Feedback (Gemini 1.5 Flash):** Beyond simple grading, the system provides **'Professional Pearls'**—specialized insights from a Senior Consultant perspective to enhance high-order clinical reasoning (Metacognition).
+    """)
 
     st.divider()
-    st.subheader("📊 4. Evaluation Matrix")
-    st.markdown("| Criteria | Weight | AI Mentor Focus |\n| :--- | :--- | :--- |\n| **Accuracy** | 40% | Gold Standard alignment |\n| **Rationale** | 30% | Pathophysiology logic |\n| **Safety** | 20% | Disposition & Efficiency |\n| **Professional** | 10% | Risk management |")
+    st.caption("Educational Reference Standards: Harrison's Principles of Internal Medicine 21st Ed, AHA/ACC 2024, IDSA, and WHO Clinical Guidelines.")
 
 # --- 🧪 CLINICAL SIMULATOR ---
 elif menu == "🧪 Clinical Simulator":
