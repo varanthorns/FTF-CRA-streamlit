@@ -6,6 +6,34 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_mic_recorder import mic_recorder
 
+# ===================== SIDEBAR NAVIGATION =====================
+with st.sidebar:
+    st.title("🧠 ACLR Professional")
+    # ประกาศตัวแปร page ตรงนี้ก่อน!
+    page = st.radio("Navigation", ["📖 User Guide", "🧪 Clinical Simulator", "🏆 Leaderboard"])
+    
+    st.divider()
+    user = st.text_input("👤 User ID", value="Doctor_X")
+    profession = st.selectbox("👩‍⚕️ Your Role", ["medicine", "nursing", "pharmacy", "dentistry", "ams", "public health"])
+    
+    # เงื่อนไขภายใน Sidebar (ถ้ามี)
+    if page == "🧪 Clinical Simulator":
+        st.subheader("Station Control")
+        if st.button("🔄 Next Random Case"):
+            st.session_state.case = random.choice(cases)
+            st.session_state.submitted = False
+            st.session_state.voice_text = ""
+            st.rerun()
+
+# ===================== MAIN PAGE LOGIC =====================
+# ตรวจสอบชื่อให้ตรงกับที่ประกาศไว้ใน st.radio ด้านบน
+if page == "📖 User Guide":  # <--- ต้องตรงกับชื่อใน Navigation ด้านบน
+    st.header("📖 Clinical Reasoning Manual")
+    # ... โค้ดส่วน User Guide ...
+
+elif page == "🧪 Clinical Simulator":
+    # ... โค้ดส่วน Simulator ...
+
 # ===================== CONFIG =====================
 st.set_page_config(layout="wide", page_title="ACLR Ultimate Clinical Reasoning")
 
