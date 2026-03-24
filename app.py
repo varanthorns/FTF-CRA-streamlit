@@ -9,51 +9,46 @@ from streamlit_mic_recorder import mic_recorder
 # ===================== CONFIG =====================
 st.set_page_config(layout="wide", page_title="ACLR Ultimate Clinical Reasoning")
 
-# ===================== EVALUATION LOGIC =====================
-def evaluate_base(dx, reasoning, case, profession):
-    """ฟังก์ชันพื้นฐานสำหรับคำนวณคะแนน Dx, Evidence และ Logic"""
-    target = case.get("interprofessional_answers", {}).get(profession, case.get("answer", ""))
+# ===================== USER GUIDE =====================
+if page == "📖 User Guide & Scoring":
+    st.header("📖 วิธีการใช้งานและเกณฑ์การประเมิน (Manual)")
     
-    # 1. Accuracy Score (5 pts)
-    try:
-        vec = TfidfVectorizer().fit_transform([str(dx).lower(), str(target).lower()])
-        sim = cosine_similarity(vec[0:1], vec[1:2])[0][0]
-    except: sim = 0
-    dx_score = 5 if sim > 0.75 else (3 if sim > 0.45 else 0)
-    level = "correct" if sim > 0.75 else ("close" if sim > 0.45 else "wrong")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.subheader("💡 ACLR คืออะไร?")
+        st.write("""
+        **ACLR (Advanced Clinical Reasoning)** ออกแบบมาเพื่อก้าวข้ามการสอบแบบตัวเลือก (MCQ) 
+        โดยเน้นการฝึก **Clinical Reasoning** หรือกระบวนการตัดสินใจทางคลินิกเสมือนจริง 
+        """)
+        st.markdown("""
+        * **Production Over Recognition:** ต้องพิมพ์คำตอบเอง เพื่อฝึกการดึงข้อมูลจากสมอง
+        * **Confidence Calibration:** ตรวจสอบความมั่นใจควบคู่ความถูกต้อง เพื่อความปลอดภัยของผู้ป่วย
+        * **Logic Extraction:** ระบบตรวจจับ 'ตรรกะ' ของการเชื่อมโยงอาการสู่โรค
+        """)
 
-    # 2. Key Evidence Score (3 pts)
-    found_keys = [k for k in case.get("key_points", []) if k.lower() in reasoning.lower()]
-    r_score = min(3, len(found_keys))
+    with col_b:
+        st.subheader("🛠 วิธีใช้งาน")
+        st.write("""
+        1. **Study Scenario:** อ่านสถานการณ์และวิเคราะห์ผลตรวจใน Tab 1 และ 2
+        2. **Formulate Dx:** พิมพ์วินิจฉัยโรค และระบุเหตุผลพยาธิสภาพ
+        3. **Confidence:** เลือกความมั่นใจของคุณ (มีผลต่อคะแนนความปลอดภัย)
+        4. **Submit:** รับผลการประเมินและ Feedback จาก AI ทันที
+        """)
 
-    # 3. Clinical Logic Score (2 pts)
-    logic_words = ["because", "therefore", "thus", "due to", "เนื่องจาก", "ดังนั้น", "ทำให้", "ส่งผล"]
-    d_score = 2 if any(w in reasoning.lower() for w in logic_words) else 0
-
-    return dx_score, r_score, d_score, target, found_keys, level
-
-def evaluate_pro(dx, reasoning, case, profession, confidence, selected_ddx):
-    """ฟังก์ชันประเมินผลระดับสูง รวมระบบ Safety และ Confidence"""
-    dx_s, r_s, d_s, target, used, level = evaluate_base(dx, reasoning, case, profession)
-    
-    # แก้ไข Syntax Error จากเวอร์ชันก่อนหน้า
-    total_base = dx_s + r_s + d_s
-
-    # 1. DDx Safety Check (ตรวจสอบโรคอันตรายที่ห้ามพลาด)
-    must_exclude = case.get("must_exclude", ["Aortic Dissection", "PE"])
-    # ให้คะแนน 1 ถ้าเลือกครบ, หัก 1 ถ้าเลือกไม่ครบ
-    safety_score = 1 if all(item in selected_ddx for item in must_exclude) else -1
-    
-    # 2. Confidence Calibration (โบนัสความมั่นใจ)
-    bonus = 0
-    if level == "correct" and confidence > 80:
-        bonus = 1 
-    elif level == "wrong" and confidence > 90:
-        bonus = -2 # Dangerous Overconfidence Penalty
-
-    final_score = max(0, min(10, total_base + safety_score + bonus))
-    return final_score, dx_s, r_s, d_s, safety_score, target, used, level
-
+    st.divider()
+    st.subheader("📊 เกณฑ์การให้คะแนน (Scoring Rubric - 10 Points)")
+    rubric_data = {
+        "หมวดหมู่": ["Diagnosis Accuracy", "Evidence Key Points", "Clinical Logic", "Confidence Bonus/Penalty"],
+        "คะแนน": ["5", "3", "2", "+1 / -2"],
+        "เกณฑ์การประเมิน": [
+            "ความถูกต้องของโรค (Semantic AI Check)",
+            "การระบุหลักฐานสำคัญในช่องเหตุผล",
+            "การใช้คำเชื่อมเหตุและผล (เช่น เนื่องจาก... ส่งผลให้...)",
+            "วินิจฉัยถูก+มั่นใจสูง = โบนัส | วินิจฉัยผิด+มั่นใจสูง = หักคะแนน"
+        ]
+    }
+    st.table(pd.DataFrame(rubric_data))
+    st.info("💡 **Clinical Reasoning Tip:** พยายามเชื่อมโยงอาการเข้ากับพยาธิสภาพโดยใช้คำเชื่อม เพื่อคะแนนตรรกะที่สูงขึ้น")
 # ===================== UTILS & LOAD =====================
 def safe_case(case):
     case.setdefault("block", "General")
