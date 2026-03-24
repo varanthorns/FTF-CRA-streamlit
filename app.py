@@ -106,7 +106,7 @@ with st.sidebar:
             st.warning("No cases found for this criteria!")
 
     st.divider()
-    user_id = st.text_input("👤 User ID", value="Doctor_X")
+    user_id = st.text_input("👤 User ID", value="Doctor")
     profession = st.selectbox("👩‍⚕️ Your Role", ["medicine", "nursing", "pharmacy", "ams"])
 
 # ===================== 6. MAIN CONTENT =====================
