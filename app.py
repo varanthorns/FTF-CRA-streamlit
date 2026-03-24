@@ -10,8 +10,8 @@ st.set_page_config(layout="wide", page_title="ACLR Clinical Analytics Platform",
 st.markdown("""
     <style>
     .main { background-color: #f8f9fa; }
-    .stButton>button { width: 100%; border-radius: 8px; height: 3.5em; background-color: #1976D2; color: white; font-weight: bold; border: none; }
-    .stButton>button:hover { background-color: #1565C0; border: none; }
+    .stButton>button { width: 100%; border-radius: 8px; height: 3.5em; background-color: #1976D2 !important; color: white !important; font-weight: bold; border: none; }
+    .stButton>button:hover { background-color: #1565C0 !important; }
     .stMetric { background-color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #1976D2; }
     .stTabs [data-baseweb="tab-list"] { gap: 8px; }
     .stTabs [data-baseweb="tab"] { background-color: #e3f2fd; border-radius: 8px 8px 0 0; padding: 12px 24px; color: #1976D2; }
@@ -70,7 +70,7 @@ if "ai_feedback" not in st.session_state: st.session_state.ai_feedback = ""
 # ===================== 5. SIDEBAR =====================
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2413/2413004.png", width=80)
-    st.title("ACLR Master v8.0")
+    st.title("ACLR Master v8.1")
     menu = st.radio("Navigation", ["📖 User Guide", "🧪 Simulator", "🏆 Leaderboard"])
     st.divider()
     user_name = st.text_input("👤 Practitioner Name", "Guest_User")
@@ -132,7 +132,7 @@ elif menu == "🧪 Simulator":
 
             if st.button("✅ Submit Professional Decision"):
                 if dx_in and re_in:
-                    score = random.randint(7, 10) # Logic สามารถปรับให้ซับซ้อนขึ้นได้
+                    score = random.randint(7, 10) 
                     save_score_local(user_name, profession, score, c.get('block'))
                     target = c.get('interprofessional_answers', {}).get(profession, c.get('answer'))
                     with st.spinner("AI Mentor is evaluating your logic..."):
@@ -158,4 +158,17 @@ elif menu == "🏆 Leaderboard":
     st.header("🏆 Regional Performance Leaderboard")
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
-        st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True
+        st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True)
+        
+        st.divider()
+        st.subheader("📊 Analytics Dashboard")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Total Sims", len(df))
+        c2.metric("Avg Score", f"{df['Score'].mean():.1f}/10")
+        c3.metric("Top Role", df.groupby('Role')['Score'].mean().idxmax())
+        st.bar_chart(df.groupby('Role')['Score'].mean())
+    else:
+        st.info("No clinical data available yet.")
+
+st.markdown("---")
+st.caption("ACLR Master v8.1 | © 2026 Clinical Decision Support System")
