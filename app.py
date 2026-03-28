@@ -257,7 +257,7 @@ elif menu == "🧪 Clinical Simulator":
       with t3:
             st.markdown(f"### 🧬 Professional Entry: {profession.upper()}")
             
-            # --- PHASE 1: CLINICAL MAPPING (Data Synthesis) ---
+            # --- PHASE 1: CLINICAL MAPPING ---
             st.markdown("#### 🧠 Step 1: Reasoning Map")
             c1, c2 = st.columns(2)
             pos_f = c1.text_area("Pertinent Positives (+)", placeholder="List symptoms/labs supporting Dx...", key="pos_map")
@@ -266,17 +266,16 @@ elif menu == "🧪 Clinical Simulator":
             # --- PHASE 2: SBAR HANDOVER ---
             st.divider()
             st.markdown("#### 🗣️ Step 2: SBAR Handover")
-            h_s = st.text_input("Situation", placeholder="What is happening right now?", key="sbar_s")
-            h_b = st.text_input("Background", placeholder="Clinical context/history?", key="sbar_b")
-            h_a = st.text_area("Assessment", placeholder="Your analysis of the situation?", key="sbar_a")
-            h_r = st.text_area("Recommendation", placeholder="Proposed immediate plan?", key="sbar_r")
+            h_s = st.text_input("Situation", key="sbar_s")
+            h_b = st.text_input("Background", key="sbar_b")
+            h_a = st.text_area("Assessment", key="sbar_a")
+            h_r = st.text_area("Recommendation", key="sbar_r")
 
             # --- PHASE 3: FINAL ASSESSMENT ---
             st.divider()
             st.markdown("#### 🩺 Step 3: Final Decision")
             dx_in = st.text_input("Final Assessment / Diagnosis", key="final_dx")
             
-            # --- DYNAMIC FIELDS PER ROLE ---
             role_info = ""
             if profession == "doctor":
                 ddx = st.multiselect("🔍 DDx", ["Sepsis", "MI", "Stroke", "IE", "Pneumonia", "Heart Failure"])
@@ -290,7 +289,6 @@ elif menu == "🧪 Clinical Simulator":
                 vitals = st.multiselect("📉 Watch Vitals", ["BP", "SpO2", "Temp", "GCS"])
                 n_care = st.text_input("🛌 Nursing Intervention")
                 role_info = f"Vitals: {vitals}, Care: {n_care}"
-            # (เพิ่มอาชีพอื่นๆ ได้ตามความต้องการของคุณ)
 
             re_in = st.text_area("✍️ Pathophysiological Rationale", height=120, key="patho_re")
             
@@ -299,48 +297,25 @@ elif menu == "🧪 Clinical Simulator":
             u_dispo = c_p2.selectbox("Disposition", ["ICU/CCU", "General Ward", "Discharge"])
             u_conf = st.slider("Confidence (%)", 0, 100, 80)
 
-            # --- SUBMIT LOGIC ---
+            # --- SUBMIT LOGIC (มีแค่อันเดียว) ---
             if st.button("🚀 SUBMIT CLINICAL DECISION"):
                 if dx_in and re_in:
-                    # รวมข้อมูล "กระบวนการคิด" ทั้งหมดส่งให้ AI
                     advanced_reasoning = f"""
-                    [Reasoning Map] Positives: {pos_f} | Negatives: {neg_f}
-                    [SBAR Handover] S: {h_s}, B: {h_b}, A: {h_a}, R: {h_r}
-                    [Role-Specific] {role_info}
-                    [Pathophysiology] {re_in}
-                    [Confidence] {u_conf}% | [Next Step] {u_step} | [Dispo] {u_dispo}
+                    [Reasoning Map] Pos: {pos_f} | Neg: {neg_f}
+                    [SBAR] S: {h_s}, B: {h_b}, A: {h_a}, R: {h_r}
+                    [Role] {role_info} | [Rationale] {re_in}
                     """
-                    
-                    # บันทึกคะแนนลง CSV (สุ่มคะแนนพื้นฐานก่อน AI ตรวจจริง)
                     save_score_local(user_name, profession, random.randint(7, 10), c.get('block'))
-                    
-                    # คำตอบเป้าหมายตามสายวิชาชีพ
                     target = c.get('interprofessional_answers', {}).get(profession, c.get('answer'))
                     
-                    with st.spinner("AI Mentor Analyzing Process..."):
-                        # ส่ง Data ชุดใหญ่เข้าฟังก์ชัน AI
+                    with st.spinner("AI Mentor Analyzing..."):
                         st.session_state.ai_feedback = get_ai_feedback_v9_5(
-                            dx_in, 
-                            advanced_reasoning, 
-                            f"Pos: {pos_f} | Neg: {neg_f}", 
-                            target, 
-                            profession, 
-                            elapsed
+                            dx_in, advanced_reasoning, f"{pos_f} | {neg_f}", target, profession, elapsed
                         )
-                    
                     st.session_state.submitted = True
                     st.rerun()
 
-            if st.button("🚀 SUBMIT CLINICAL DECISION"):
-                if dx_in and re_in:
-                    full_re = f"Role Details: {role_info}. Rationale: {re_in}. Confidence: {u_conf}%"
-                    save_score_local(user_name, profession, random.randint(8, 10), c.get('block'))
-                    target = c.get('interprofessional_answers', {}).get(profession, c.get('answer'))
-                    with st.spinner("AI Mentor Analyzing Performance..."):
-                        st.session_state.ai_feedback = get_ai_feedback_v9_5(dx_in, full_re, reasoning_map_data, target, profession, elapsed)
-                    st.session_state.submitted = True
-                    st.rerun()
-
+    # --- ส่วนแสดงผลลัพธ์ (ย้ายออกมานอก Tab เพื่อให้แสดงผลเต็มหน้าจอ) ---
     if st.session_state.submitted:
         st.divider()
         res_l, res_r = st.columns(2)
@@ -351,22 +326,16 @@ elif menu == "🧪 Clinical Simulator":
         with res_r:
             st.subheader("🎯 Benchmarks")
             st.success(f"**Gold Standard:** {c.get('answer')}")
-        # --- ส่วนที่เขียนเพิ่ม ---
             st.divider()
             st.markdown("#### 🌐 Multidisciplinary Insights")
-            st.write("จะเกิดอะไรขึ้นถ้าวิชาชีพอื่นดูแลเคสนี้?")
-            
-            # ดึงข้อมูลคำตอบของวิชาชีพอื่นมาโชว์
             ips = c.get('interprofessional_answers', {})
-            
             if ips:
-                # ใช้ Tabs เพื่อประหยัดพื้นที่และแยกมุมมองชัดเจน
                 cols = st.tabs([role.upper() for role in ips.keys()])
-                for idx, (role, perspective) in enumerate(ips.items()):
+                for idx, (role_name, perspective) in enumerate(ips.items()):
                     with cols[idx]:
-                        st.info(f"**{role.capitalize()}'s Focus:** {perspective}")
+                        st.info(f"**{role_name.capitalize()}'s Focus:** {perspective}")
             else:
-                st.caption("No interprofessional data available for this case.")
+                st.caption("No interprofessional data available.")
 # --- 🏆 ANALYTICS HUB ---
 elif menu == "🏆 Analytics Hub":
     st.header("🏆 Performance Analytics Dashboard")
