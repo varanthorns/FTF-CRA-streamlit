@@ -217,9 +217,9 @@ if menu == "📖 Manual & Standards":
 elif menu == "🧪 Clinical Simulator":
     c = st.session_state.case
     
-    # ⏱️ FEATURE 1: TIME-PRESSURE (Mental Load)
+    # ⏱️ FEATURE 1: TIME-PRESSURE
     elapsed = int(time.time() - st.session_state.start_time)
-    time_limit = 600 # 10 Minutes
+    time_limit = 600 
     remaining = max(0, time_limit - elapsed)
     
     col_h1, col_h2 = st.columns([3, 1])
@@ -238,7 +238,6 @@ elif menu == "🧪 Clinical Simulator":
             st.info(c.get('scenario', {}).get('en', 'No data.'))
             if c.get("labs"): st.table(pd.DataFrame(c["labs"]))
             
-            # 🔄 FEATURE 4: LONGITUDINAL CASE PROGRESSION
             if st.button("⏩ Advance 24 Hours (Evaluate Evolution)"):
                 st.session_state.evolved = True
             
@@ -246,36 +245,18 @@ elif menu == "🧪 Clinical Simulator":
                 st.warning(f"**Evolution:** {c.get('evolution', 'Condition remains stable but requires monitoring.')}")
         
         with t2:
-            # 🧩 FEATURE 2: CLINICAL REASONING MAP (Visual Thinking)
             st.subheader("Reasoning Map: Data Synthesis")
             st.write("Differentiate Pertinent findings from Clinical Noise.")
             cm_col1, cm_col2 = st.columns(2)
-            pos_find = cm_col1.text_area("Pertinent Positives (+)", placeholder="List symptoms/labs that support your Dx", height=150)
-            neg_find = cm_col2.text_area("Pertinent Negatives (-)", placeholder="List absent findings that rule out DDx", height=150)
-            reasoning_map_data = f"Pos: {pos_find} | Neg: {neg_find}"
+            # ใช้ Key เฉพาะเพื่อป้องกัน State หาย
+            pos_f = cm_col1.text_area("Pertinent Positives (+)", placeholder="Supporting findings...", height=150, key="map_pos")
+            neg_f = cm_col2.text_area("Pertinent Negatives (-)", placeholder="Absent findings...", height=150, key="map_neg")
 
-      with t3:
+        with t3:
             st.markdown(f"### 🧬 Professional Entry: {profession.upper()}")
+            dx_in = st.text_input("🩺 Final Assessment / Diagnosis", key="entry_dx")
             
-            # --- PHASE 1: CLINICAL MAPPING ---
-            st.markdown("#### 🧠 Step 1: Reasoning Map")
-            c1, c2 = st.columns(2)
-            pos_f = c1.text_area("Pertinent Positives (+)", placeholder="List symptoms/labs supporting Dx...", key="pos_map")
-            neg_f = c2.text_area("Pertinent Negatives (-)", placeholder="List absent findings to rule out DDx...", key="neg_map")
-            
-            # --- PHASE 2: SBAR HANDOVER ---
-            st.divider()
-            st.markdown("#### 🗣️ Step 2: SBAR Handover")
-            h_s = st.text_input("Situation", key="sbar_s")
-            h_b = st.text_input("Background", key="sbar_b")
-            h_a = st.text_area("Assessment", key="sbar_a")
-            h_r = st.text_area("Recommendation", key="sbar_r")
-
-            # --- PHASE 3: FINAL ASSESSMENT ---
-            st.divider()
-            st.markdown("#### 🩺 Step 3: Final Decision")
-            dx_in = st.text_input("Final Assessment / Diagnosis", key="final_dx")
-            
+            # --- DYNAMIC FIELDS ---
             role_info = ""
             if profession == "doctor":
                 ddx = st.multiselect("🔍 DDx", ["Sepsis", "MI", "Stroke", "IE", "Pneumonia", "Heart Failure"])
@@ -289,33 +270,51 @@ elif menu == "🧪 Clinical Simulator":
                 vitals = st.multiselect("📉 Watch Vitals", ["BP", "SpO2", "Temp", "GCS"])
                 n_care = st.text_input("🛌 Nursing Intervention")
                 role_info = f"Vitals: {vitals}, Care: {n_care}"
+            # ... (Other roles)
 
-            re_in = st.text_area("✍️ Pathophysiological Rationale", height=120, key="patho_re")
+            re_in = st.text_area("✍️ Pathophysiological Rationale", height=120, key="entry_re")
             
+            # --- SBAR HANDOVER (Moved inside Tab 3 for better flow) ---
+            st.divider()
+            st.markdown("#### 🗣️ SBAR Handover (Bonus Points)")
+            h_s = st.text_input("Situation", placeholder="What is happening now?", key="sbar_s")
+            h_b = st.text_input("Background", placeholder="History/Context?", key="sbar_b")
+            h_a = st.text_area("Assessment", placeholder="Your analysis?", key="sbar_a")
+            h_r = st.text_area("Recommendation", placeholder="Immediate plan?", key="sbar_r")
+
             c_p1, c_p2 = st.columns(2)
             u_step = c_p1.selectbox("Next Step", ["Observe", "Emergency", "Meds", "Imaging", "Consult"])
             u_dispo = c_p2.selectbox("Disposition", ["ICU/CCU", "General Ward", "Discharge"])
             u_conf = st.slider("Confidence (%)", 0, 100, 80)
 
-            # --- SUBMIT LOGIC (มีแค่อันเดียว) ---
+            # --- SUBMIT LOGIC ---
             if st.button("🚀 SUBMIT CLINICAL DECISION"):
                 if dx_in and re_in:
+                    # รวมข้อมูลทั้งหมดส่งให้ AI (Rationale + SBAR + Logic Map)
                     advanced_reasoning = f"""
                     [Reasoning Map] Pos: {pos_f} | Neg: {neg_f}
                     [SBAR] S: {h_s}, B: {h_b}, A: {h_a}, R: {h_r}
-                    [Role] {role_info} | [Rationale] {re_in}
+                    [Role Details] {role_info} | [Patho Rationale] {re_in}
+                    [Decision] Step: {u_step}, Dispo: {u_dispo}, Conf: {u_conf}%
                     """
-                    save_score_local(user_name, profession, random.randint(7, 10), c.get('block'))
+                    
+                    save_score_local(user_name, profession, random.randint(8, 10), c.get('block'))
                     target = c.get('interprofessional_answers', {}).get(profession, c.get('answer'))
                     
-                    with st.spinner("AI Mentor Analyzing..."):
+                    with st.spinner("AI Mentor Analyzing Performance..."):
+                        # ส่งเข้าฟังก์ชัน AI v9.5 (ส่งข้อมูล Reasoning Map ไปในช่องที่ 3)
                         st.session_state.ai_feedback = get_ai_feedback_v9_5(
-                            dx_in, advanced_reasoning, f"{pos_f} | {neg_f}", target, profession, elapsed
+                            dx_in, 
+                            advanced_reasoning, 
+                            f"Pos: {pos_f} | Neg: {neg_f}", 
+                            target, 
+                            profession, 
+                            elapsed
                         )
                     st.session_state.submitted = True
                     st.rerun()
 
-    # --- ส่วนแสดงผลลัพธ์ (ย้ายออกมานอก Tab เพื่อให้แสดงผลเต็มหน้าจอ) ---
+    # --- DISPLAY RESULTS ---
     if st.session_state.submitted:
         st.divider()
         res_l, res_r = st.columns(2)
@@ -330,12 +329,13 @@ elif menu == "🧪 Clinical Simulator":
             st.markdown("#### 🌐 Multidisciplinary Insights")
             ips = c.get('interprofessional_answers', {})
             if ips:
-                cols = st.tabs([role.upper() for role in ips.keys()])
+                cols = st.tabs([role_name.upper() for role_name in ips.keys()])
                 for idx, (role_name, perspective) in enumerate(ips.items()):
                     with cols[idx]:
                         st.info(f"**{role_name.capitalize()}'s Focus:** {perspective}")
             else:
-                st.caption("No interprofessional data available.")
+                st.caption("No interprofessional data available for this case.")
+
 # --- 🏆 ANALYTICS HUB ---
 elif menu == "🏆 Analytics Hub":
     st.header("🏆 Performance Analytics Dashboard")
