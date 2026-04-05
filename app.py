@@ -1,6 +1,8 @@
 import streamlit as st
 import json, random, pandas as pd, os, time
 import google.generativeai as genai
+# ===================== ⚙️ GLOBAL CONFIG =====================
+DB_FILE = "clinical_scores.csv"  #
 
 # ===================== 🔧 1. FIX + NEW CORE SYSTEM =====================
 
