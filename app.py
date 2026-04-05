@@ -380,31 +380,50 @@ elif menu == "🧪 Clinical Simulator":
             # --- SUBMIT LOGIC ---
             if st.button("🚀 SUBMIT CLINICAL DECISION"):
                 if dx_in and re_in:
-                    # รวมข้อมูลทั้งหมดส่งให้ AI (Rationale + SBAR + Logic Map)
-                    advanced_reasoning = f"""
-                    [Reasoning Map] Pos: {pos_f} | Neg: {neg_f}
-                    [SBAR] S: {h_s}, B: {h_b}, A: {h_a}, R: {h_r}
-                    [Role Details] {role_info} | [Patho Rationale] {re_in}
-                    [Decision] Step: {u_step}, Dispo: {u_dispo}, Conf: {u_conf}%
-                    """
-                    # 📊 Competency estimation (เบื้องต้น)
-                    competency = {
-                        "Diagnosis": random.randint(6,10),
-                        "Reasoning": random.randint(6,10),
-                        "SBAR": random.randint(6,10),
-                        "Safety": random.randint(6,10)
-                    }
+                    with st.spinner("⚕️ AI Mentor is analyzing your reasoning..."):
+                        # 1. รวบรวมข้อมูลทั้งหมด
+                        advanced_reasoning = f"""
+                        [Reasoning Map] Pos: {pos_f} | Neg: {neg_f}
+                        [SBAR] S: {h_s}, B: {h_b}, A: {h_a}, R: {h_r}
+                        [Role Details] {role_info} | [Patho Rationale] {re_in}
+                        [Decision] Step: {u_step}, Dispo: {u_dispo}, Conf: {u_conf}%
+                        """
+                        
+                        # 2. เรียก AI ให้ตรวจ (เพิ่มจุดนี้!)
+                        target_ans = c.get('interprofessional_answers', {}).get(profession, c.get('answer'))
+                        feedback = get_ai_feedback_v9_5(dx_in, re_in, advanced_reasoning, target_ans, profession, elapsed)
+                        st.session_state.ai_feedback = feedback
+                        st.session_state.submitted = True
+
+                        # 3. บันทึกคะแนน (Competency)
+                        competency = {
+                            "Diagnosis": random.randint(7, 10) if dx_in.lower() in str(target_ans).lower() else random.randint(4, 7),
+                            "Reasoning": random.randint(6, 10),
+                            "SBAR": 10 if h_s and h_r else 5,
+                            "Safety": 10 if u_dispo == "ICU/CCU" and "STEMI" in str(target_ans) else 7
+                        }
+                        score = int(sum(competency.values()) / 4)
+                        
+                        save_score_local(user_name, profession, score, c.get('block'), competency, elapsed)
                     
-                    score = int(sum(competency.values()) / 4)
-                    
-                    save_score_local(
-                        user_name,
-                        profession,
-                        score,
-                        c.get('block'),
-                        competency=competency,
-                        time_taken=elapsed
-                    )
+                    st.rerun() # สั่งรีเฟรชเพื่อแสดงผล Feedback
+
+    # --- ส่วนแสดงผลหลังจาก Submit แล้ว (ต่อจาก col_main) ---
+    if st.session_state.submitted:
+        st.divider()
+        st.subheader("👨‍🏫 AI Mentor Clinical Debriefing")
+        st.markdown(st.session_state.ai_feedback)
+        
+        with st.expander("🔑 View Gold Standard Answer"):
+            st.success(f"**Target Diagnosis:** {c.get('answer')}")
+            st.write(f"**Professional Perspective ({profession}):**")
+            st.info(c.get('interprofessional_answers', {}).get(profession, "Consult Senior Staff."))
+        
+        if st.button("🏁 Finish & Start New Case"):
+            st.session_state.submitted = False
+            st.session_state.ai_feedback = ""
+            st.session_state.start_time = time.time()
+            st.rerun()
 
 # --- 🏆 ANALYTICS HUB ---
 elif menu == "🏆 Analytics Hub":
