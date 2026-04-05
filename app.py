@@ -395,21 +395,31 @@ elif menu == "🧪 Clinical Simulator":
                         st.session_state.ai_feedback = feedback
                         st.session_state.submitted = True
 
-                        # 3. บันทึกคะแนน (Competency)
-                        competency = {
-                            "Diagnosis": random.randint(7, 10) if dx_in.lower() in str(target_ans).lower() else random.randint(4, 7),
-                            "Reasoning": random.randint(6, 10),
-                            sbar_complete = all([h_s, h_b, h_a, h_r])
-                            "SBAR": 10 if sbar_complete else 6
-                            "Safety": 10 if u_dispo == "ICU/CCU" and critical = ["stemi", "sepsis", "stroke"]
-                             is_critical = any(x in str(target_ans).lower() for x in critical)
-                            "Safety": 10 if is_critical and u_dispo == "ICU/CCU" else 7
-                        }
-                        score = int(sum(competency.values()) / 4)
-                        
-                        save_score_local(user_name, profession, score, c.get('block'), competency, elapsed)
+                       # --- 3. บันทึกคะแนน (Competency) ---
+                       # ย้าย Logic การคำนวณออกมาไว้นอก {}
+                       target_ans_str = str(target_ans).lower()
+                       sbar_complete = all([h_s, h_b, h_a, h_r])
                     
-                    st.rerun() # สั่งรีเฟรชเพื่อแสดงผล Feedback
+                       # เช็คว่าเป็นเคสวิกฤตหรือไม่
+                       critical_list = ["stemi", "sepsis", "stroke", "shock"]
+                       is_critical = any(x in target_ans_str for x in critical_list)
+                    
+                       competency = {
+                             "Diagnosis": random.randint(7, 10) if dx_in.lower() in target_ans_str else random.randint(4, 7),
+                             "Reasoning": random.randint(6, 10),
+                             "SBAR": 10 if sbar_complete else 6,
+                             "Safety": 10 if (is_critical and u_dispo == "ICU/CCU") or (not is_critical and u_dispo != "ICU/CCU") else 7
+                      }
+                    
+                      # คำนวณคะแนนรวม
+                      score = int(sum(competency.values()) / 4)
+                    
+                      # บันทึกข้อมูล
+                      save_score_local(user_name, profession, score, c.get('block'), competency, elapsed)
+                    
+                      # อัปเดตสถานะว่า Submit แล้วเพื่อให้แสดง Feedback
+                      st.session_state.submitted = True
+                      st.rerun()
 
     # --- ส่วนแสดงผลหลังจาก Submit แล้ว (ต่อจาก col_main) ---
     if st.session_state.submitted:
