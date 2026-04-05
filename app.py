@@ -280,7 +280,7 @@ if menu == "📖 Manual & Standards":
     st.divider()
     st.caption("Educational Reference Standards: Harrison's Principles of Internal Medicine 21st Ed, AHA/ACC 2024, IDSA, and WHO Clinical Guidelines.")
 
-# --- 🧪 CLINICAL SIMULATOR ---
+# --- 🧪 # --- 🧪 CLINICAL SIMULATOR ---
 elif menu == "🧪 Clinical Simulator":
     c = st.session_state.case
     
@@ -290,64 +290,57 @@ elif menu == "🧪 Clinical Simulator":
     remaining = max(0, time_limit - elapsed)
     
     col_h1, col_h2 = st.columns([3, 1])
-    with col_h1: st.title(f"🏥 Simulation: {c.get('block')} | Level: {c.get('difficulty').upper()}")
+    with col_h1: 
+        st.title(f"🏥 Simulation: {c.get('block')} | Level: {c.get('difficulty').upper()}")
     with col_h2: 
         st.markdown(f"<div class='stress-timer'>⏳ {remaining}s</div>", unsafe_allow_html=True)
-        if remaining == 0: st.error("CRITICAL: Efficiency Score Penalized!")
+        if remaining == 0: 
+            st.error("CRITICAL: Efficiency Score Penalized!")
 
-   col_main, col_info = st.columns([2, 1])
+    col_main, col_info = st.columns([2, 1])
     
-   with col_main:
-    t1, t2, t3 = st.tabs(["📋 Clinical Case Details", "🧠 Clinical Reasoning Map", "✍️ Professional Entry"])
-    
-    # ------------------ TAB 1 ------------------
-    with t1:
-        st.subheader("Patient Scenario & Diagnostic Data")
-        st.info(c.get('scenario', {}).get('en', 'No data.'))
-
-        if c.get("labs"):
-            st.table(pd.DataFrame(c["labs"]))
+    with col_main:
+        t1, t2, t3 = st.tabs(["📋 Clinical Case Details", "🧠 Clinical Reasoning Map", "✍️ Professional Entry"])
         
-        if st.button("⏩ Advance 24 Hours (Evaluate Evolution)"):
-            st.session_state.evolved = True
+        with t1:
+            st.subheader("Patient Scenario & Diagnostic Data")
+            st.info(c.get('scenario', {}).get('en', 'No data.'))
+            if c.get("labs"): 
+                st.table(pd.DataFrame(c["labs"]))
+            
+            if st.button("⏩ Advance 24 Hours (Evaluate Evolution)"):
+                st.session_state.evolved = True
+            
+            if st.session_state.evolved:
+                st.warning(f"**Evolution:** {c.get('evolution', 'Condition remains stable but requires monitoring.')}")
+            
+            # 🏥 Mock EHR Integration (ย้ายเข้ามาอยู่ใน t1 ให้เรียบร้อย)
+            ehr_data = {
+                "Patient ID": "ACLR-001",
+                "Vitals": {"BP": "90/60", "HR": 120, "SpO2": "92%"},
+                "Status": "ER Admission",
+                "Note": "High-risk cardiac event"
+            }
+            st.subheader("📂 EHR Snapshot")
+            st.json(ehr_data)
         
-        if st.session_state.evolved:
-            st.warning(f"**Evolution:** {c.get('evolution', 'Condition remains stable but requires monitoring.')}")
+        with t2:
+            st.subheader("Reasoning Map: Data Synthesis")
+            st.write("Differentiate Pertinent findings from Clinical Noise.")
+            cm_col1, cm_col2 = st.columns(2)
+            pos_f = cm_col1.text_area("Pertinent Positives (+)", placeholder="Supporting findings...", height=150, key="map_pos")
+            neg_f = cm_col2.text_area("Pertinent Negatives (-)", placeholder="Absent findings...", height=150, key="map_neg")
 
-        # ✅ EHR ต้องอยู่ใน t1
-        ehr_data = {
-            "Patient ID": "ACLR-001",
-            "Vitals": {"BP": "90/60", "HR": 120, "SpO2": "92%"},
-            "Status": "ER Admission",
-            "Note": "High-risk cardiac event"
-        }
-
-        st.subheader("📂 EHR Snapshot")
-        st.json(ehr_data)
-
-    # ------------------ TAB 2 ------------------
-    with t2:
-        st.subheader("Reasoning Map: Data Synthesis")
-        st.write("Differentiate Pertinent findings from Clinical Noise.")
-
-        cm_col1, cm_col2 = st.columns(2)
-
-        pos_f = cm_col1.text_area(
-            "Pertinent Positives (+)",
-            height=150,
-            key="map_pos"
-        )
-
-        neg_f = cm_col2.text_area(
-            "Pertinent Negatives (-)",
-            height=150,
-            key="map_neg"
-        )
-
-    # ------------------ TAB 3 ------------------
-    with t3:
-        st.markdown(f"### 🧬 Professional Entry: {profession.upper()}")
-        dx_in = st.text_input("🩺 Final Assessment / Diagnosis", key="entry_dx")
+        with t3:
+            st.markdown(f"### 🧬 Professional Entry: {profession.upper()}")
+            dx_in = st.text_input("🩺 Final Assessment / Diagnosis", key="entry_dx")
+            
+            # --- DYNAMIC FIELDS ---
+            role_info = ""
+            if profession == "doctor":
+                ddx = st.multiselect("🔍 DDx", ["Sepsis", "MI", "Stroke", "IE", "Pneumonia", "Heart Failure"])
+                plan = st.text_input("💊 Treatment Plan")
+                role_info = f"DDx: {ddx}, Plan: {plan}"
             
             # --- DYNAMIC FIELDS ---
             role_info = ""
