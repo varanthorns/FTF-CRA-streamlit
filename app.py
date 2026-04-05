@@ -4,11 +4,11 @@ import google.generativeai as genai
 
 # ===================== 🔧 1. FIX + NEW CORE SYSTEM =====================
 
-# 🔐 FIX: ใช้ secrets แทน API key hardcode (ปลอดภัย)
+# 🔐 FIX: ใช้ secrets แทน API key (ล้างตัวอักษร U+00A0 ออกแล้ว)
 try:
-    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 except:
-    GEMINI_API_KEY = "DEMO_KEY"
+    GEMINI_API_KEY = "DEMO_KEY"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
