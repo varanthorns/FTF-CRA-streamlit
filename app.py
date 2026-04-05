@@ -410,36 +410,42 @@ elif menu == "🧪 Clinical Simulator":
 elif menu == "🏆 Analytics Hub":
     st.header("🏆 Performance Analytics Dashboard")
     
+    # 1. เช็คว่ามีไฟล์ DB หรือไม่
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
         
-        # --- 📊 ส่วนแสดงผลหลัก (ย้าย Code ทั้งหมดเข้ามาในนี้) ---
-        st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True)
-        st.divider()
-        
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Simulations", len(df))
-        c2.metric("Mean Score", f"{df['Score'].mean():.1f}/10")
-        top_role = df.groupby('Role')['Score'].mean().idxmax() if not df.empty else "N/A"
-        c3.metric("Top Role", top_role)
-        
-        st.subheader("📈 Learning Curve")
-        if "Timestamp" in df.columns:
-            df["Timestamp"] = pd.to_datetime(df["Timestamp"])
-            st.line_chart(df.set_index("Timestamp")["Score"])
+        # 2. เช็คว่าในไฟล์มีข้อมูลหรือไม่ (ป้องกัน Empty CSV)
+        if not df.empty:
+            st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True)
+            st.divider()
             
-        st.subheader("🧠 Competency Breakdown")
-        comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
-        # เช็คว่ามี Column เหล่านี้ใน df จริงๆ ก่อนรัน
-        existing_cols = [c for c in comp_cols if c in df.columns]
-        
-        if existing_cols:
-            st.bar_chart(df[existing_cols].mean())
+            # Metrics
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Simulations", len(df))
+            c2.metric("Mean Score", f"{df['Score'].mean():.1f}/10")
+            
+            # กราฟ Learning Curve
+            st.subheader("📈 Learning Curve")
+            if "Timestamp" in df.columns:
+                df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+                st.line_chart(df.set_index("Timestamp")["Score"])
+                
+            # --- ✅ ย้ายก้อนที่มีปัญหาเข้ามาไว้ในนี้ ---
+            st.subheader("🧠 Competency Breakdown")
+            comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
+            existing_cols = [c for c in comp_cols if c in df.columns]
+            
+            if existing_cols:
+                st.bar_chart(df[existing_cols].mean())
+        else:
+            st.warning("Database is empty. Please complete a case in the Simulator.")
             
     else: 
-        # กรณีไม่มีไฟล์ CSV
-        st.info("ยังไม่มีข้อมูลการจำลองในขณะนี้ กรุณาทำแบบทดสอบใน Simulator ก่อน")
-    comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
+        # กรณีรันครั้งแรกแล้วยังไม่มีไฟล์ .csv
+        st.info("No simulation data found. Please start by using the Clinical Simulator.")
+
+# --- ⚠️ สำคัญ: ลบโค้ดที่ซ้ำซ้อนหรือหลุดอยู่ล่างสุดของไฟล์ทิ้ง ---
+# ตรวจสอบว่าไม่มีบรรทัด 'existing_cols = ...' หลุดอยู่นอกแนว (Indentation) ของ elif นะครับ
     
 st.markdown("---")
 st.caption("ACLR Global v9.9.5 | Adaptive Cognitive Load–Driven AI Clinical Reasoning Loop | © 2026")
