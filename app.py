@@ -413,21 +413,41 @@ elif menu == "🧪 Clinical Simulator":
 # --- 🏆 ANALYTICS HUB ---
 elif menu == "🏆 Analytics Hub":
     st.header("🏆 Performance Analytics Dashboard")
+    
+    # 1. ตรวจสอบว่ามีไฟล์ฐานข้อมูลหรือไม่
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
         st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True)
         st.divider()
+        
+        # 2. แสดง Metrics สรุปผล
         c1, c2, c3 = st.columns(3)
         c1.metric("Simulations", len(df))
         c2.metric("Mean Score", f"{df['Score'].mean():.1f}/10")
-        c3.metric("Top Role", df.groupby('Role')['Score'].mean().idxmax() if not df.empty else "N/A")
+        
+        # ป้องกัน Error กรณี df ว่าง
+        top_role = df.groupby('Role')['Score'].mean().idxmax() if not df.empty else "N/A"
+        c3.metric("Top Role", top_role)
+        
         st.bar_chart(df.groupby('Role')['Score'].mean())
-    else: st.info("No data yet.")
+        
+        # --- จุดที่ต้องระวัง: ทุกอย่างด้านล่างนี้ต้อง Indent (ย่อหน้า) ให้ตรงกับบรรทัดด้านบน ---
         st.subheader("📈 Learning Curve")
-    if "Timestamp" in df.columns:
-        df["Timestamp"] = pd.to_datetime(df["Timestamp"])
-        st.line_chart(df.set_index("Timestamp")["Score"])
+        if "Timestamp" in df.columns:
+            df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+            # แสดงกราฟเส้นคะแนนตามเวลา
+            st.line_chart(df.set_index("Timestamp")["Score"])
+            
         st.subheader("🧠 Competency Breakdown")
+        comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
+        existing_cols = [c for c in comp_cols if c in df.columns]
+        
+        if existing_cols:
+            st.bar_chart(df[existing_cols].mean())
+            
+    else: 
+        # กรณีไม่มีไฟล์ CSV (ยังไม่เคยเล่น)
+        st.info("ยังไม่มีข้อมูลการจำลองในขณะนี้ กรุณาทำแบบทดสอบใน Simulator ก่อนเพื่อดูการวิเคราะห์ผล")
 
     comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
     
