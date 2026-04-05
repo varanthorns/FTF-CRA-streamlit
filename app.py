@@ -340,15 +340,9 @@ elif menu == "🧪 Clinical Simulator":
             # --- DYNAMIC FIELDS ---
             role_info = ""
             if profession == "doctor":
-                ddx = st.multiselect("🔍 DDx", ["Sepsis", "MI", "Stroke", "IE", "Pneumonia", "Heart Failure"])
-                plan = st.text_input("💊 Treatment Plan")
-                role_info = f"DDx: {ddx}, Plan: {plan}"
-            
-            # --- DYNAMIC FIELDS ---
-            role_info = ""
-            if profession == "doctor":
-                ddx = st.multiselect("🔍 DDx", ["Sepsis", "MI", "Stroke", "IE", "Pneumonia", "Heart Failure"])
-                plan = st.text_input("💊 Treatment Plan")
+                # เพิ่ม key="doctor_ddx" เพื่อป้องกัน ID ซ้ำ
+                ddx = st.multiselect("🔍 DDx", ["Sepsis", "MI", "Stroke", "IE", "Pneumonia", "Heart Failure"], key="doctor_ddx")
+                plan = st.text_input("💊 Treatment Plan", key="doctor_plan")
                 role_info = f"DDx: {ddx}, Plan: {plan}"
             elif profession == "pharmacy":
                 dosing = st.text_input("⚖️ Dosing Logic")
