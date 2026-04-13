@@ -380,32 +380,37 @@ elif menu == "🧪 Clinical Simulator":
             # --- SUBMIT LOGIC ---
             if st.button("🚀 SUBMIT CLINICAL DECISION"):
                 if dx_in and re_in:
-                    with st.spinner("⚕️ AI Mentor is analyzing..."):
-                        # --- ทุกบรรทัดในนี้ต้องย่อหน้าเท่ากันเป๊ะ (แนะนำ 4 Spaces) ---
-                        target_ans_str = str(target_ans).lower()
-                        sbar_complete = all([h_s, h_b, h_a, h_r])
-                        
-                        critical_list = ["stemi", "sepsis", "stroke", "shock"]
-                        is_critical = any(x in target_ans_str for x in critical_list)
-
-                        competency = {
-                            "Diagnosis": random.randint(7, 10) if dx_in.lower() in target_ans_str else random.randint(4, 7),
-                            "Reasoning": random.randint(6, 10),
-                            "SBAR": 10 if sbar_complete else 6,
-                            "Safety": 10 if (is_critical and u_dispo == "ICU/CCU") or (not is_critical and u_dispo != "ICU/CCU") else 7
-                        }
-
-                        # คำนวณคะแนนรวม
-                        score = int(sum(competency.values()) / 4)
-
-                        # บันทึกข้อมูล
-                        save_score_local(user_name, profession, score, c.get('block'), competency, elapsed)
-                        
-                        # อัปเดตสถานะ
-                        st.session_state.submitted = True
-                    
-                    st.rerun()
-
+                    with st.spinner("⚕️ AI Mentor is analyzing your reasoning process..."):
+                            # 1. รวบรวม Data Synthesis จาก Reasoning Map (Tab 2)
+                            user_map = f"Positives: {st.session_state.get('map_pos', '')}, Negatives: {st.session_state.get('map_neg', '')}"
+                            
+                            # 2. เรียกใช้ AI Mentor ของจริง (แทนการสุ่ม)
+                            ai_response = get_ai_feedback_v9_5(
+                                user_dx=dx_in, 
+                                user_re=f"Rationale: {re_in} | SBAR: {h_s}, {h_b}, {h_a}, {h_r}",
+                                user_map=user_map,
+                                target=c.get('answer'),
+                                role=profession,
+                                time_taken=elapsed
+                            )
+                            
+                            # 3. เก็บผลลัพธ์ลง Session State เพื่อแสดงผล
+                            st.session_state.ai_feedback = ai_response
+                            
+                            # 4. บันทึกคะแนน (สามารถให้ AI สกัดคะแนนออกมาจาก Text ได้ หรือใช้ Logic ตรวจคำตอบเบื้องต้น)
+                            target_ans_str = str(c.get('answer')).lower()
+                            score = 10 if dx_in.lower() in target_ans_str else 5
+                            
+                            competency = {
+                                "Diagnosis": score,
+                                "Reasoning": 8, # หรือสกัดจาก AI Response
+                                "SBAR": 10 if all([h_s, h_b, h_a, h_r]) else 5,
+                                "Safety": 10 if u_dispo == "ICU/CCU" else 7
+                            }
+                            
+                            save_score_local(user_name, profession, score, c.get('block'), competency, elapsed)
+                            st.session_state.submitted = True
+                            st.rerun()
     # --- ส่วนแสดงผลหลังจาก Submit แล้ว (ต่อจาก col_main) ---
     if st.session_state.submitted:
         st.divider()
