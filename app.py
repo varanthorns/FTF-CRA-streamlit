@@ -1,12 +1,11 @@
 import streamlit as st
 import json, random, pandas as pd, os, time
 import google.generativeai as genai
+
 # ===================== ⚙️ GLOBAL CONFIG =====================
-DB_FILE = "clinical_scores.csv"  #
+DB_FILE = "clinical_analytics_v10.csv"
 
-# ===================== 🔧 1. FIX + NEW CORE SYSTEM =====================
-
-# 🔐 FIX: ใช้ secrets แทน API key hardcode (ปลอดภัย)
+# 🔐 API Setup
 try:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 except:
@@ -14,176 +13,197 @@ except:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# ✅ FIX: function ที่หาย
-def save_score_local(user, role, score, block, competency=None, time_taken=0):
-    new_entry = {
-        "User": user,
-        "Role": role,
-        "Score": score,
-        "Block": block,
-        "Time": time_taken,
-        "Timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-    }
+# ===================== 🔧 CORE FUNCTIONS =====================
 
-    # เพิ่ม competency tracking
-    if competency:
-        new_entry.update(competency)
-
-    df_new = pd.DataFrame([new_entry])
-
+def save_score_local(data):
+    df_new = pd.DataFrame([data])
     if os.path.exists(DB_FILE):
         df_old = pd.read_csv(DB_FILE)
         df = pd.concat([df_old, df_new], ignore_index=True)
     else:
         df = df_new
-
     df.to_csv(DB_FILE, index=False)
 
-# ===================== 🧠 ADAPTIVE LEARNING =====================
-
-def get_user_history(user):
+def get_adaptive_difficulty(user):
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
-        return df[df["User"] == user]
-    return pd.DataFrame()
+        user_df = df[df["User"] == user]
+        if len(user_df) >= 3:
+            avg = user_df["Score"].mean()
+            if avg < 6: return "easy"
+            elif avg < 8: return "medium"
+            else: return "hard"
+    return "medium"
 
-def get_adaptive_difficulty(user):
-    df = get_user_history(user)
-    if len(df) < 5:
-        return "easy"
-    
-    avg_score = df["Score"].mean()
-    
-    if avg_score < 6:
-        return "easy"
-    elif avg_score < 8:
-        return "medium"
-    else:
-        return "hard"
-# ===================== 2. CONFIG & MEDICAL UI =====================
-st.set_page_config(layout="wide", page_title="FTF-CRA Clinical Analytics Platform", page_icon="🩺")
+# ===================== 🧠 AI MENTOR LOGIC =====================
 
-# Medical-Grade CSS + New Stress Factor Styles
-st.markdown("""
-    <style>
-    .main { background-color: #f8f9fa; }
-    .stButton>button { width: 100%; border-radius: 8px; height: 3.5em; background-color: #1976D2 !important; color: white !important; font-weight: bold; border: none; }
-    .stButton>button:hover { background-color: #1565C0 !important; }
-    .stMetric { background-color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #1976D2; }
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
-    .stTabs [data-baseweb="tab"] { background-color: #e3f2fd; border-radius: 8px 8px 0 0; padding: 12px 24px; color: #1976D2; font-weight: 600; }
-    .stTabs [aria-selected="true"] { background-color: #1976D2 !important; color: white !important; }
-    div[data-testid="stExpander"] { border: 1px solid #e3f2fd; border-radius: 8px; background-color: white; }
-    /* New Feature Styles */
-    .stress-timer { font-size: 28px; font-weight: bold; color: #d32f2f; text-align: center; border: 3px solid #d32f2f; padding: 10px; border-radius: 15px; background: white; }
-    .reasoning-map { background-color: #fffde7; padding: 15px; border-radius: 10px; border: 1px dashed #fbc02d; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# ===================== 3. API & DATABASE SETUP (UPDATED) =====================
-def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken):
+def get_ai_metacognitive_feedback(case, user_data):
     model = genai.GenerativeModel('gemini-1.5-flash')
     
-    # Prompt ตัวนี้จะวิเคราะห์ 'กระบวนการคิด' (Reasoning Process) ตามที่คุณต้องการ
     prompt = f"""
-    Act as a Senior Clinical Professor. Evaluate this {role}'s clinical reasoning process.
+    Act as a Senior Clinical Professor. Analyze this student's clinical reasoning gap (FTF-CRA).
     
-    [User Data]
-    - Diagnosis: {user_dx}
-    - Reasoning & SBAR: {user_re}
-    - Clinical Reasoning Map: {user_map}
-    - Gold Standard Reference: {target}
-    - Time Taken: {time_taken} seconds (Criticality factor).
+    [Case Details]
+    - Diagnosis Target: {case['answer']}
+    - Professional Context: {user_data['Role']}
+    
+    [Student Data]
+    - Phase 1 (First Thought): {user_data['Dx_FT']} (Confidence: {user_data['Conf_FT']}%)
+    - Phase 2 (Final Thought): {user_data['Dx_Final']} (Confidence: {user_data['Conf_Final']}%)
+    - Reasoning Map: Positives({user_data['Pos_Findings']}), Noise({user_data['Noise']})
+    - Rationale: {user_data['Rationale']}
     
     [Evaluation Tasks]
-    1. Clinical Logic Alignment: Did the student link the 'Pertinent Positives' correctly to the Diagnosis?
-    2. SBAR Quality: Is the handover professional, concise, and safe? 
-    3. Cognitive Noise Filter: Did they focus on key findings vs clinical noise?
-    4. Time-Criticality: Based on {time_taken}s, was their decision-making efficient for this severity level?
+    1. Analyze 'Diagnostic Shift': Did they change their mind correctly based on Labs?
+    2. Identify 'Cognitive Biases': Any confirmation bias or premature closure?
+    3. Calibration: If confidence is high but Dx is wrong, warn about overconfidence.
+    4. Provide 1 Metacognitive Question to trigger reflection.
 
-    [Response Format]
-    - Diagnosis Score (0-10)
-    - Reasoning Score (0-10)
-    - SBAR Score (0-10)
-    - Safety Score (0-10)
-    - **Overall Score (0-10):**
-    - **Strengths:**
-    - **Critical Gaps:**
-    - **Cognitive Bias (if any):**
-    - **Professional Pearl:**
-    - **Well-being Tip:**
-    
-    English only.
+    Response in English. Concise, professional, and encouraging.
     """
-    
     try:
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        return f"AI Mentor is currently offline (Error: {str(e)}). Please review the Gold Standard Answer."
+        return f"AI Mentor is offline. Gold Standard: {case['answer']}"
 
-# ===================== 4. DATA LOADING =====================
+# ===================== 🎨 UI & STYLING =====================
+st.set_page_config(layout="wide", page_title="FTF-CRA Clinical Reasoning", page_icon="🩺")
+
+st.markdown("""
+    <style>
+    .main { background-color: #f0f2f6; }
+    .stButton>button { border-radius: 10px; height: 3em; font-weight: bold; }
+    .phase-box { padding: 20px; border-radius: 15px; margin-bottom: 20px; border-left: 10px solid #1976D2; background: white; }
+    .metric-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ===================== 📂 DATA LOADING =====================
 @st.cache_data
 def load_cases():
-    if os.path.exists("cases.json"):
-        with open("cases.json", "r", encoding="utf-8") as f: return json.load(f)
-    # Default Mock with Evolution for Testing
+    # ในการใช้งานจริงให้โหลดจาก cases.json
     return [{
-    "block":"Cardiology", 
-    "difficulty":"hard", 
-    "scenario":{"en":"65yo Male presents with 2 hours of crushing substernal chest pain..."}, 
-    "labs":[{"Test": "Troponin T", "Result": "480", "Unit": "ng/L", "Ref": "<14"}],
-    "answer":"Acute STEMI",
-    "interprofessional_answers": {
-        "doctor": "Immediate Reperfusion (PCI) and DAPT loading.",
-        "pharmacy": "Monitor for Heparin-induced thrombocytopenia and verify statin dose.",
-        "nursing": "Frequent Vitals, Pain management, and prep for transport to Cath Lab.",
-        "ams": "Monitor Troponin trends and check for hemolysis in samples."
-    },
-    "evolution": "24 Hours Later: Patient develops shortness of breath..."
+        "block":"Internal Medicine", 
+        "difficulty":"medium", 
+        "scenario":{"en":"A 55-year-old female presents with sudden onset of pleuritic chest pain and shortness of breath. She recently underwent hip surgery 10 days ago."}, 
+        "labs":[{"Test": "D-Dimer", "Result": "2500", "Unit": "ng/mL", "Ref": "<500"},
+                {"Test": "CTPA", "Result": "Filling defect in right pulmonary artery", "Unit": "-", "Ref": "-"}],
+        "answer":"Pulmonary Embolism",
+        "interprofessional_answers": {"doctor": "Start Anticoagulation (LMWH/DOAC)", "nursing": "Monitor SpO2 and promote early ambulation.", "pharmacy": "Verify renal function for DOAC dosing."}
     }]
 
 all_cases = load_cases()
 
-# ===================== 5. SESSION STATE =====================
+# ===================== 🔄 SESSION STATE =====================
 if "case" not in st.session_state: st.session_state.case = all_cases[0]
-if "submitted" not in st.session_state: st.session_state.submitted = False
-if "ai_feedback" not in st.session_state: st.session_state.ai_feedback = ""
+if "phase" not in st.session_state: st.session_state.phase = "FT" # FT or FINAL or RESULT
 if "start_time" not in st.session_state: st.session_state.start_time = time.time()
-if "evolved" not in st.session_state: st.session_state.evolved = False
+if "ai_feedback" not in st.session_state: st.session_state.ai_feedback = ""
 
-# ===================== 6. SIDEBAR & FILTERS =====================
+# ===================== ⬅️ SIDEBAR =====================
 with st.sidebar:
-    st.title("FTF-CRA Platform")
-    menu = st.radio("Main Menu", ["📖 Manual & Standards", "🧪 Clinical Simulator", "🏆 Analytics Hub"])
+    st.title("🩺 FTF-CRA Platform")
+    menu = st.radio("Navigate", ["🧪 Simulator", "🏆 Analytics"])
     st.divider()
-    user_name = st.text_input("👤 Practitioner Name", "User_01")
-    profession = st.selectbox("👩‍⚕️ Clinical Role", ["Doctor", "Pharmacy", "Nursing", "AMS", "Dentistry", "Vet", "Public Health"]).lower()
+    u_name = st.text_input("Practitioner", "Student_01")
+    u_role = st.selectbox("Role", ["Doctor", "Nursing", "Pharmacy", "AMS", "Student"])
     
-    st.divider()
-    st.subheader("🎯 Session Filters")
-    blocks = sorted(list(set([c.get('block', 'General') for c in all_cases])))
-    f_block = st.selectbox("Select Block", ["All Blocks"] + blocks)
-    f_diff = st.select_slider("Select Difficulty", options=["easy", "medium", "hard"], value="medium")
-    # 🧠 Adaptive Mode
-    adaptive_mode = st.checkbox("🧠 Adaptive Learning Mode", value=False)
-    if adaptive_mode:
-        f_diff = get_adaptive_difficulty(user_name)
-        st.success(f"AI adjusted difficulty → {f_diff.upper()}")
+    if st.button("🔄 New Case"):
+        st.session_state.phase = "FT"
+        st.session_state.case = random.choice(all_cases)
+        st.session_state.start_time = time.time()
+        st.rerun()
 
-    if menu == "🧪 Clinical Simulator":
-        if st.button("🔄 Generate Filtered Case"):
-            pool = all_cases
-            if f_block != "All Blocks": pool = [c for c in pool if c.get('block') == f_block]
-            pool = [c for c in pool if c.get('difficulty') == f_diff]
-            st.session_state.case = random.choice(pool) if pool else random.choice(all_cases)
-            st.session_state.submitted = False
-            st.session_state.ai_feedback = ""
-            st.session_state.start_time = time.time()
-            st.session_state.evolved = False
-            st.rerun()
+# ===================== 🧪 SIMULATOR PAGE =====================
+if menu == "🧪 Simulator":
+    c = st.session_state.case
+    
+    # ⏱️ Header Information
+    col_t1, col_t2 = st.columns([3,1])
+    with col_t1: st.title(f"Case: {c['block']} ({c['difficulty'].upper()})")
+    with col_t2: 
+        elapsed = int(time.time() - st.session_state.start_time)
+        st.metric("Time Elapsed", f"{elapsed}s")
 
-# ===================== 7. PAGES =====================
+    # --- 1️⃣ PHASE: FIRST THOUGHT ---
+    if st.session_state.phase == "FT":
+        st.markdown("<div class='phase-box'><h3>⚡ Phase 1: First Thought (System 1)</h3><p>Identify the most likely diagnosis based on initial presentation.</p></div>", unsafe_allow_html=True)
+        st.info(f"**Scenario:** {c['scenario']['en']}")
+        
+        dx_ft = st.text_input("Initial Diagnosis (First Thought)", key="dx_ft")
+        conf_ft = st.slider("Confidence Level (%)", 0, 100, 50, key="conf_ft")
+        
+        if st.button("Next: Analyze Evidence ➡️"):
+            if dx_ft:
+                st.session_state.dx_ft = dx_ft
+                st.session_state.conf_ft = conf_ft
+                st.session_state.phase = "FINAL"
+                st.rerun()
+            else: st.error("Please enter initial diagnosis")
+
+    # --- 2️⃣ PHASE: FINAL THOUGHT ---
+    elif st.session_state.phase == "FINAL":
+        st.markdown("<div class='phase-box'><h3>🧐 Phase 2: Final Thought (System 2)</h3><p>Analyze clinical data and refine your decision.</p></div>", unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("📋 Clinical Evidence")
+            st.table(pd.DataFrame(c["labs"]))
+        
+        with col2:
+            st.subheader("🧠 Reasoning Map")
+            pos_f = st.text_area("Pertinent Positives (+)", placeholder="Evidence supporting Dx...")
+            noise_f = st.text_area("Clinical Noise / Irrelevant", placeholder="Findings to ignore...")
+
+        st.divider()
+        dx_final = st.text_input("Final Diagnosis (Final Thought)", value=st.session_state.dx_ft)
+        conf_final = st.slider("Final Confidence (%)", 0, 100, st.session_state.conf_ft)
+        rationale = st.text_area("Pathophysiological Rationale")
+
+        if st.button("🚀 Submit for AI Debriefing"):
+            with st.spinner("AI Mentor is analyzing your reasoning path..."):
+                user_payload = {
+                    "User": u_name, "Role": u_role, "Block": c["block"],
+                    "Dx_FT": st.session_state.dx_ft, "Conf_FT": st.session_state.conf_ft,
+                    "Dx_Final": dx_final, "Conf_Final": conf_final,
+                    "Pos_Findings": pos_f, "Noise": noise_f, "Rationale": rationale,
+                    "Time": elapsed
+                }
+                
+                # Simple Scoring Logic
+                score = 10 if dx_final.lower() in c["answer"].lower() else 5
+                user_payload["Score"] = score
+                user_payload["Timestamp"] = time.strftime("%Y-%m-%d %H:%M:%S")
+                
+                save_score_local(user_payload)
+                st.session_state.ai_feedback = get_ai_metacognitive_feedback(c, user_payload)
+                st.session_state.phase = "RESULT"
+                st.rerun()
+
+    # --- 3️⃣ PHASE: RESULT & FEEDBACK ---
+    elif st.session_state.phase == "RESULT":
+        st.success("🎉 Simulation Completed")
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            st.subheader("👨‍🏫 AI Mentor Feedback")
+            st.markdown(st.session_state.ai_feedback)
+        
+        with c2:
+            st.subheader("🔑 Gold Standard")
+            st.info(f"**Target Diagnosis:** {c['answer']}")
+            st.write(f"**Expert Recommendation:** {c['interprofessional_answers'].get(u_role.lower(), 'Consult Specialist.')}")
+            
+            # Gap Visualization
+            st.write("**Decision Gap Analysis**")
+            gap_data = pd.DataFrame({
+                "Phase": ["First Thought", "Final Thought"],
+                "Confidence": [st.session_state.conf_ft, st.session_state.conf_final]
+            })
+            st.line_chart(gap_data.set_index("Phase"))
+
+# ===================== PAGES =====================
 # --- 📖 MANUAL & STANDARDS (UPGRADED ENGLISH EDITION) ---
 if menu == "📖 Manual & Standards":
     st.header("📖 Clinical Operations & User Guide")
@@ -469,3 +489,4 @@ st.caption("FTF-CRA Global v9.9.5 | Adaptive Cognitive Load–Driven AI Clinical
 # --- 🧪 UPDATE: AI PROMPT ENHANCEMENT ---
 # (หมายเหตุ: ควรไปปรับแก้ฟังก์ชัน get_ai_feedback เดิมให้รับค่าเหล่านี้เข้าไปตรวจด้วย 
 # เพื่อให้ AI ตรวจสอบ 'กระบวนการคิด' ไม่ใช่แค่ 'คำตอบสุดท้าย')
+
