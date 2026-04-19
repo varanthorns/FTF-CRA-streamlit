@@ -81,36 +81,51 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ===================== 3. API & DATABASE SETUP (UPDATED) =====================
-def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, confidence, stress):
+# ===================== 3. UPGRADED AI MENTOR PROMPT (FTF-CRA V10) =====================
+def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, confidence, stress, first_thought="Not recorded"):
+    """
+    Advanced Clinical Reasoning Evaluator: 
+    Analyzes the shift from Intuition (First Thought) to Analysis (Final Thought).
+    """
     model = genai.GenerativeModel('gemini-1.5-flash')
     
-    # รวม Prompt และ JSON Instruction ไว้ด้วยกัน
     prompt = f"""
-    Act as a Senior Clinical Professor and Cognitive Scientist. 
-    Evaluate the clinical reasoning of a {role}.
+    Act as a Senior Medical Educator and Cognitive Psychologist specialized in Clinical Reasoning.
+    Your task is to evaluate a {role}'s clinical decision-making process.
 
-    [Clinical Context]
-    - User's Diagnosis: {user_dx}
-    - Gold Standard Answer: {target}
-    - Time Elapsed: {time_taken}s
-    - User Confidence: {confidence}%
-    - Reported Stress: {stress}/10
+    [PHASE 1: THE DATA]
+    - First Impression (Intuition): {first_thought}
+    - Final Diagnosis (Decision): {user_dx}
+    - Supporting Evidence (Reasoning Map): {user_map}
+    - Rationale & Communication (SBAR): {user_re}
+    - Gold Standard Reference: {target}
 
-    [Reasoning Artifacts]
-    - Reasoning Map (Synthesis): {user_map}
-    - Rationale & SBAR Handover: {user_re}
+    [PHASE 2: PERFORMANCE METRICS]
+    - Time Taken: {time_taken}s (Pressure: {"High" if time_taken < 120 else "Moderate"})
+    - Reported Confidence: {confidence}%
+    - Subjective Stress: {stress}/10
 
-    [Evaluation Tasks]
-    1. Information Synthesis: Pertinent Positives analysis.
-    2. Cognitive Bias: Identify Premature Closure or Anchoring.
-    3. Self-Awareness: Compare confidence vs accuracy.
+    [PHASE 3: EVALUATION TASKS]
+    1. INTUITION VS ANALYSIS: Compare 'First Impression' to 'Final Diagnosis'. Did the student evolve their thinking based on labs, or did they stick to a wrong initial guess?
+    2. DATA SYNTHESIS: Did the 'Reasoning Map' include critical Pertinent Negatives? (Identify if they only looked for data that confirmed their bias).
+    3. COGNITIVE BIAS DETECTION: Identify specific biases:
+       - Anchoring: Stuck on first thought despite conflicting labs.
+       - Premature Closure: Decided too quickly without full analysis.
+       - Overconfidence: High confidence (>80%) with incorrect diagnosis.
+    4. SBAR & SAFETY: Evaluate the handover quality and the safety of the proposed next steps.
 
-    [Response Format - JSON REQUIRED AT THE END]
-    Provide professional text feedback first, then end with this JSON block:
+    [RESPONSE FORMAT - MANDATORY]
+    - Professional Feedback: (Direct, empathetic, but intellectually challenging).
+    - Cognitive Bias Alert: (Explicitly name the bias found or 'None detected').
+    - Professional Pearl: (One expert-level takeaway for a {role}).
+    
+    MUST END WITH THIS JSON BLOCK FOR ANALYTICS:
     {{
       "scores": {{
-        "Diagnosis": 0-10, "Reasoning": 0-10, "SBAR": 0-10, "Safety": 0-10
+        "Diagnosis": 0-10, 
+        "Reasoning": 0-10, 
+        "SBAR": 0-10, 
+        "Safety": 0-10
       }},
       "bias_detected": "string",
       "pearl": "string"
@@ -118,7 +133,13 @@ def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, c
     """
     
     try:
-        response = model.generate_content(prompt)
+        # กำหนดค่าการตอบกลับให้เสถียรขึ้น
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.2, # ลดความเพ้อเจ้อ ให้วิเคราะห์ตาม Fact
+            )
+        )
         return response.text
     except Exception as e:
         return f"AI Mentor error: {str(e)}"
@@ -305,27 +326,48 @@ elif menu == "🧪 Clinical Simulator":
     with col_main:
         t1, t2, t3 = st.tabs(["📋 Clinical Case Details", "🧠 Clinical Reasoning Map", "✍️ Professional Entry"])
         
-        with t1:
-            st.subheader("Patient Scenario & Diagnostic Data")
+     with t1:
+            st.subheader("📋 Clinical Case Details")
+            
+            # 1. แสดงแค่ Scenario (เนื้อเรื่อง)
             st.info(c.get('scenario', {}).get('en', 'No data.'))
+            
+            # 2. ให้กรอก First Impression ทันทีที่อ่านเนื้อเรื่องจบ (ก่อนดู Lab)
+            st.markdown("""
+                <div style="background-color: #e3f2fd; padding: 10px; border-radius: 8px; border-left: 5px solid #1976D2;">
+                    <p style="margin-bottom:0; font-weight:bold; color: #1976D2;">💡 First Thought (Intuition Phase)</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            st.text_input(
+                "What is your initial 'Gut' feeling?", 
+                key="first_thought", 
+                placeholder="พิมพ์ความสงสัยแรกของคุณที่นี่..."
+            )
+            
+            st.divider()
+
+            # 3. ค่อยแสดงผล Labs และข้อมูลเชิงลึก (เพื่อเข้าสู่ Analysis Phase)
+            st.subheader("🔬 Diagnostic Data & Labs")
             if c.get("labs"): 
                 st.table(pd.DataFrame(c["labs"]))
             
-            if st.button("⏩ Advance 24 Hours (Evaluate Evolution)"):
-                st.session_state.evolved = True
-            
-            if st.session_state.evolved:
-                st.warning(f"**Evolution:** {c.get('evolution', 'Condition remains stable but requires monitoring.')}")
-            
-            # 🏥 Mock EHR Integration (ย้ายเข้ามาอยู่ใน t1 ให้เรียบร้อย)
+            # 🏥 Mock EHR Integration
             ehr_data = {
                 "Patient ID": "FTF-CRA-001",
                 "Vitals": {"BP": "90/60", "HR": 120, "SpO2": "92%"},
                 "Status": "ER Admission",
                 "Note": "High-risk cardiac event"
             }
-            st.subheader("📂 EHR Snapshot")
-            st.json(ehr_data)
+            with st.expander("📂 View EHR Snapshot"):
+                st.json(ehr_data)
+            
+            # ⏩ Evolution Button
+            if st.button("⏩ Advance 24 Hours (Evaluate Evolution)"):
+                st.session_state.evolved = True
+            
+            if st.session_state.evolved:
+                st.warning(f"**Evolution:** {c.get('evolution', 'Condition remains stable.')}")
         
         with t2:
             st.subheader("Reasoning Map: Data Synthesis")
@@ -414,8 +456,9 @@ elif menu == "🧪 Clinical Simulator":
                                 target=c.get('answer'),
                                 role=profession,
                                 time_taken=elapsed,
-                                confidence=u_conf, # ค่าจาก slider
-                                stress=stress_level # ค่าจาก slider
+                                confidence=u_conf, 
+                                stress=stress_level,
+                                first_thought=f_thought #
                             )
                             
                             # 3. เก็บผลลัพธ์ลง Session State เพื่อแสดงผล
