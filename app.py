@@ -465,22 +465,22 @@ elif menu == "🧪 Clinical Simulator":
                             save_score_local(user_name, profession, score, c.get('block'), competency, elapsed)
                             st.session_state.submitted = True
                             st.rerun()
-    # --- ส่วนแสดงผลหลังจาก Submit แล้ว (ต่อจาก col_main) ---
-    if st.session_state.submitted:
-        st.divider()
-        st.subheader("👨‍🏫 AI Mentor Clinical Debriefing")
-        st.markdown(st.session_state.ai_feedback)
-        
-        with st.expander("🔑 View Gold Standard Answer"):
-            st.success(f"**Target Diagnosis:** {c.get('answer')}")
-            st.write(f"**Professional Perspective ({profession}):**")
-            st.info(c.get('interprofessional_answers', {}).get(profession, "Consult Senior Staff."))
-        
-        if st.button("🏁 Finish & Start New Case"):
-            st.session_state.submitted = False
-            st.session_state.ai_feedback = ""
-            st.session_state.start_time = time.time()
-            st.rerun()
+            # --- ส่วนแสดงผลหลังจาก Submit แล้ว (ต่อจาก col_main) ---
+            if st.session_state.submitted:
+                st.divider()
+                st.subheader("👨‍🏫 AI Mentor Clinical Debriefing")
+                st.markdown(st.session_state.ai_feedback)
+                
+                with st.expander("🔑 View Gold Standard Answer"):
+                    st.success(f"**Target Diagnosis:** {c.get('answer')}")
+                    st.write(f"**Professional Perspective ({profession}):**")
+                    st.info(c.get('interprofessional_answers', {}).get(profession, "Consult Senior Staff."))
+                
+                if st.button("🏁 Finish & Start New Case"):
+                    st.session_state.submitted = False
+                    st.session_state.ai_feedback = ""
+                    st.session_state.start_time = time.time()
+                    st.rerun()
 
 # --- 🏆 ANALYTICS HUB ---
 elif menu == "🏆 Analytics Hub":
