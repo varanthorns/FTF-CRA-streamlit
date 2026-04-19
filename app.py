@@ -8,7 +8,61 @@ DB_FILE = "clinical_scores.csv"  #
 
 # 🔐 FIX: ใช้ secrets แทน API key hardcode (ปลอดภัย)
 try:
-    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]# --- 🏆 ANALYTICS HUB ---
+elif menu == "🏆 Analytics Hub":
+    st.header("🏆 Performance Analytics Dashboard")
+    
+    if os.path.exists(DB_FILE):
+        df = pd.read_csv(DB_FILE)
+        
+        if not df.empty:
+            # 1. แสดงตารางข้อมูลล่าสุด
+            st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True)
+            st.divider()
+            
+            # 2. คำนวณ Metrics หลัก
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Total Simulations", len(df))
+            c2.metric("Mean Diagnosis Score", f"{df['Score'].mean():.1f}/10")
+            c3.metric("Avg Time Taken", f"{df['Time'].mean():.0f}s")
+            
+            # 3. กราฟ Learning Curve (Score over time)
+            st.subheader("📈 Learning Curve (Overall Score)")
+            df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+            st.line_chart(df.set_index("Timestamp")["Score"])
+            
+            # 4. Competency Breakdown (แก้จุดที่ Error)
+            st.subheader("🧠 Competency Radar")
+            comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
+            
+            # ตรวจสอบว่าในไฟล์มี Column เหล่านี้จริงๆ ไหม
+            existing_cols = [col for col in comp_cols if col in df.columns]
+            
+            if existing_cols:
+                # คำนวณค่าเฉลี่ย
+                avg_series = df[existing_cols].mean()
+                
+                # แสดงเป็น Bar Chart แบบง่ายก่อน
+                st.bar_chart(avg_series)
+                
+                # (Optional) ถ้าลง plotly ไว้ จะสวยมากครับ
+                try:
+                    import plotly.graph_objects as go
+                    fig = go.Figure(data=go.Scatterpolar(
+                        r=avg_series.values.tolist() + [avg_series.values[0]],
+                        theta=existing_cols + [existing_cols[0]],
+                        fill='toself',
+                        line_color='#1976D2'
+                    ))
+                    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 10])))
+                    st.plotly_chart(fig, use_container_width=True)
+                except ImportError:
+                    st.info("Tip: Install 'plotly' to view the Radar Chart.")
+                    
+        else:
+            st.warning("Database is empty. Please complete a case in the Simulator first.")
+    else: 
+        st.info("No simulation data found. Please start by using the Clinical Simulator.")
 except:
     GEMINI_API_KEY = "DEMO_KEY"
 
@@ -432,35 +486,57 @@ elif menu == "🧪 Clinical Simulator":
 elif menu == "🏆 Analytics Hub":
     st.header("🏆 Performance Analytics Dashboard")
     
-    # 1. เช็คว่ามีไฟล์ DB หรือไม่
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
         
-        # 2. เช็คว่าในไฟล์มีข้อมูลหรือไม่ (ป้องกัน Empty CSV)
         if not df.empty:
+            # 1. แสดงตารางข้อมูลล่าสุด
             st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True)
             st.divider()
             
-            # Metrics
+            # 2. คำนวณ Metrics หลัก
             c1, c2, c3 = st.columns(3)
-            c1.metric("Simulations", len(df))
-            c2.metric("Mean Score", f"{df['Score'].mean():.1f}/10")
+            c1.metric("Total Simulations", len(df))
+            c2.metric("Mean Diagnosis Score", f"{df['Score'].mean():.1f}/10")
+            c3.metric("Avg Time Taken", f"{df['Time'].mean():.0f}s")
             
-            # กราฟ Learning Curve
-            st.subheader("📈 Learning Curve")
-            if "Timestamp" in df.columns:
-                df["Timestamp"] = pd.to_datetime(df["Timestamp"])
-                st.line_chart(df.set_index("Timestamp")["Score"])
-                
-            # --- ✅ ย้ายก้อนที่มีปัญหาเข้ามาไว้ในนี้ ---
-            st.subheader("🧠 Competency Breakdown")
+            # 3. กราฟ Learning Curve (Score over time)
+            st.subheader("📈 Learning Curve (Overall Score)")
+            df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+            st.line_chart(df.set_index("Timestamp")["Score"])
+            
+            # 4. Competency Breakdown (แก้จุดที่ Error)
+            st.subheader("🧠 Competency Radar")
             comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
-            existing_cols = [c for c in comp_cols if c in df.columns]
+            
+            # ตรวจสอบว่าในไฟล์มี Column เหล่านี้จริงๆ ไหม
+            existing_cols = [col for col in comp_cols if col in df.columns]
             
             if existing_cols:
-                st.bar_chart(df[existing_cols].mean())
+                # คำนวณค่าเฉลี่ย
+                avg_series = df[existing_cols].mean()
+                
+                # แสดงเป็น Bar Chart แบบง่ายก่อน
+                st.bar_chart(avg_series)
+                
+                # (Optional) ถ้าลง plotly ไว้ จะสวยมากครับ
+                try:
+                    import plotly.graph_objects as go
+                    fig = go.Figure(data=go.Scatterpolar(
+                        r=avg_series.values.tolist() + [avg_series.values[0]],
+                        theta=existing_cols + [existing_cols[0]],
+                        fill='toself',
+                        line_color='#1976D2'
+                    ))
+                    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 10])))
+                    st.plotly_chart(fig, use_container_width=True)
+                except ImportError:
+                    st.info("Tip: Install 'plotly' to view the Radar Chart.")
+                    
         else:
-            st.warning("Database is empty. Please complete a case in the Simulator.")
+            st.warning("Database is empty. Please complete a case in the Simulator first.")
+    else: 
+        st.info("No simulation data found. Please start by using the Clinical Simulator.")
             
     else: 
         # กรณีรันครั้งแรกแล้วยังไม่มีไฟล์ .csv
