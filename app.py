@@ -6,7 +6,7 @@ DB_FILE = "clinical_scores.csv"  #
 
 # ===================== 🔧 1. API & CORE SYSTEM SETUP =====================
 
-# 🔐 1.1 ตั้งค่า API Key ให้จบในตัว (ป้องกัน SyntaxError)
+# 🔐 1.1 ตั้งค่า API Key ให้จบในตัว (ป้องกัน SyntaxError: expected 'except')
 try:
     if "GEMINI_API_KEY" in st.secrets:
         GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
@@ -15,11 +15,11 @@ try:
 except Exception:
     GEMINI_API_KEY = "DEMO_KEY"
 
+# เชื่อมต่อ AI Mentor
 genai.configure(api_key=GEMINI_API_KEY)
 
-# 💾 1.2 Global Database Functions
+# 💾 1.2 ฟังก์ชันบันทึกข้อมูล (วางนอกเงื่อนไขเมนูเพื่อให้เรียกใช้ได้ทุกที่)
 def save_score_local(user, role, score, block, competency=None, time_taken=0):
-    """ฟังก์ชันสำหรับบันทึกคะแนนลง CSV"""
     new_entry = {
         "User": user,
         "Role": role,
@@ -32,7 +32,6 @@ def save_score_local(user, role, score, block, competency=None, time_taken=0):
         new_entry.update(competency)
 
     df_new = pd.DataFrame([new_entry])
-    
     if os.path.exists(DB_FILE):
         df_old = pd.read_csv(DB_FILE)
         df = pd.concat([df_old, df_new], ignore_index=True)
@@ -40,6 +39,7 @@ def save_score_local(user, role, score, block, competency=None, time_taken=0):
         df = df_new
     df.to_csv(DB_FILE, index=False)
 
+# 🧠 1.3 ระบบ Adaptive Learning (วิเคราะห์ประวัติผู้ใช้)
 def get_user_history(user):
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
@@ -54,61 +54,35 @@ def get_adaptive_difficulty(user):
     elif avg_score < 8: return "medium"
     else: return "hard"
 
-# ===================== 🏆 2. NAVIGATION & ANALYTICS HUB =====================
+# ===================== 🎨 2. CONFIG & NAVIGATION =====================
 
-# ส่วนนี้ต้องมั่นใจว่าตัวแปร 'menu' ถูกประกาศมาจาก sidebar แล้ว
-if menu == "🏆 Analytics Hub":
-    st.header("🏆 Performance Analytics Dashboard")
+# ⚙️ 2.1 UI Configuration
+st.set_page_config(layout="wide", page_title="FTF-CRA Clinical Platform", page_icon="🩺")
+
+# 🎨 2.2 Medical-Grade CSS
+st.markdown("""
+    <style>
+    .main { background-color: #f8f9fa; }
+    .stButton>button { width: 100%; border-radius: 8px; height: 3.5em; background-color: #1976D2 !important; color: white !important; font-weight: bold; }
+    .stMetric { background-color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #1976D2; }
+    .stress-timer { font-size: 28px; font-weight: bold; color: #d32f2f; text-align: center; border: 3px solid #d32f2f; padding: 10px; border-radius: 15px; background: white; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 🧭 2.3 Sidebar Navigation (ประกาศตัวแปร menu ที่นี่)
+with st.sidebar:
+    st.title("🩺 FTF-CRA v9.9.5")
+    menu = st.radio("Main Menu", ["📖 Manual & Standards", "🧪 Clinical Simulator", "🏆 Analytics Hub"])
+    st.divider()
+    user_name = st.text_input("👤 Practitioner Name", "User_01")
+    profession = st.selectbox("👩‍⚕️ Clinical Role", ["Doctor", "Pharmacy", "Nursing", "AMS", "Dentistry", "Vet"]).lower()
     
-    if os.path.exists(DB_FILE):
-        df = pd.read_csv(DB_FILE)
-        if not df.empty:
-            # --- KPI Cards ---
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Total Sims", len(df))
-            c2.metric("Avg Score", f"{df['Score'].mean():.1f}/10")
-            c3.metric("Avg Speed", f"{df['Time'].mean():.0f}s")
-            
-            success_rate = (len(df[df['Score'] >= 8]) / len(df)) * 100
-            c4.metric("Success Rate", f"{success_rate:.0f}%")
-            
-            st.divider()
-
-            # --- Visualizations ---
-            col_left, col_right = st.columns(2)
-            
-            with col_left:
-                st.subheader("📈 Learning Progress")
-                df["Timestamp"] = pd.to_datetime(df["Timestamp"])
-                st.line_chart(df.sort_values("Timestamp").set_index("Timestamp")["Score"])
-
-            with col_right:
-                st.subheader("🧠 Competency Radar")
-                comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
-                found_cols = [col for col in comp_cols if col in df.columns]
-                
-                if found_cols:
-                    avg_series = df[found_cols].mean()
-                    try:
-                        import plotly.graph_objects as go
-                        fig = go.Figure(data=go.Scatterpolar(
-                            r=avg_series.values.tolist() + [avg_series.values[0]],
-                            theta=found_cols + [found_cols[0]],
-                            fill='toself',
-                            line_color='#1976D2'
-                        ))
-                        fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 10])), showlegend=False)
-                        st.plotly_chart(fig, use_container_width=True)
-                    except Exception:
-                        st.bar_chart(avg_series)
-            
-            st.divider()
-            with st.expander("📂 View Raw Logs"):
-                st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True)
-        else:
-            st.warning("Database is empty. Please complete a case first.")
-    else:
-        st.info("No simulation data found. Start a session to see your progress.")
+    # Adaptive Logic ใน Sidebar
+    adaptive_mode = st.checkbox("🧠 AI Adaptive Difficulty", value=False)
+    f_diff = st.select_slider("Set Difficulty", options=["easy", "medium", "hard"], value="medium")
+    if adaptive_mode:
+        f_diff = get_adaptive_difficulty(user_name)
+        st.info(f"AI Selected: {f_diff.upper()}")
 
 # ===================== 🧠 ADAPTIVE LEARNING =====================
 
