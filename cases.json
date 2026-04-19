@@ -1,165 +1,71 @@
 [
   {
-    "case_id": "CVS-E-001",
-    "block": "Cardiovascular",
-    "difficulty": "easy",
-    "scenario": {
-      "en": "A 68-year-old male presents with sudden crushing chest pain radiating to his left jaw. He is sweating profusely and feels nauseated.",
-      "th": "ผู้ป่วยชายอายุ 68 ปี มาด้วยอาการเจ็บแน่นหน้าอกร้าวไปกรามซ้าย เหงื่อแตก และคลื่นไส้"
-    },
-    "labs": [
-      {"Test": "EKG", "Result": "ST-elevation in II, III, aVF", "Unit": "-", "Range": "Normal"},
-      {"Test": "Troponin T", "Result": "850", "Unit": "ng/L", "Range": "< 14"}
-    ],
-    "answer": "Acute Inferior Wall MI",
-    "must_exclude": ["Aortic Dissection", "PE", "GERD"],
-    "key_points": ["ST-elevation", "II III aVF", "Troponin", "Crushing pain"],
-    "next_step_correct": "Emergency Procedure",
-    "dispo_correct": "Admit ICU/CCU",
-    "interprofessional_answers": {
-      "doctor": "Acute Inferior Wall MI - Primary PCI of Right Coronary Artery (RCA).",
-      "pharmacy": "Aspirin 300mg, Clopidogrel 600mg, and Heparin. Avoid Nitrates if RV infarct suspected.",
-      "nursing": "Monitor BP closely, EKG monitoring, and prepare for defibrillation if needed.",
-      "ams": "Immediate Troponin T and CK-MB assay. Check PT/INR for baseline.",
-      "dentistry": "Stop any procedure. Administer Aspirin and activate EMS immediately.",
-      "vet": "Check for VPCs or arrhythmias in canine patients with similar presentation.",
-      "public health": "Identify smoking status and promote smoking cessation programs."
-    }
-  },
-  {
-    "case_id": "CVS-E-002",
-    "block": "Cardiovascular",
-    "difficulty": "easy",
-    "scenario": {
-      "en": "A 75-year-old female presents with progressive shortness of breath, orthopnea, and bilateral leg swelling for 1 week.",
-      "th": "ผู้ป่วยหญิงอายุ 75 ปี มาด้วยอาการเหนื่อยหอบมากขึ้นเรื่อยๆ ต้องนอนหมอนสูง และขาบวมทั้งสองข้างมา 1 สัปดาห์"
-    },
-    "labs": [
-      {"Test": "NT-proBNP", "Result": "4500", "Unit": "pg/mL", "Range": "< 300"},
-      {"Test": "Chest X-ray", "Result": "Cardiomegaly with pulmonary congestion", "Unit": "-", "Range": "Normal"}
-    ],
-    "answer": "Congestive Heart Failure",
-    "must_exclude": ["Pneumonia", "PE", "Chronic Kidney Disease"],
-    "key_points": ["Orthopnea", "NT-proBNP", "Leg swelling", "Cardiomegaly"],
-    "next_step_correct": "Start Medication",
-    "dispo_correct": "Admit General Ward",
-    "interprofessional_answers": {
-      "doctor": "Acute Decompensated Heart Failure (ADHF) - Loop Diuretics.",
-      "pharmacy": "IV Furosemide, monitor Potassium levels and Renal function.",
-      "nursing": "Strict Intake/Output chart, Daily weight, and Low salt diet education.",
-      "ams": "Check electrolytes (K+, Na+) and Kidney function (Cr, BUN).",
-      "dentistry": "Patient may not tolerate supine position due to orthopnea.",
-      "vet": "Dilated Cardiomyopathy (DCM) or Mitral Valve Disease in older dogs.",
-      "public health": "Education on salt reduction and adherence to hypertension meds."
-    }
-  },
-  {
-    "case_id": "CVS-M-001",
-    "block": "Cardiovascular",
-    "difficulty": "medium",
-    "scenario": {
-      "en": "A 35-year-old female smoker on oral contraceptives presents with sudden sharp right-sided chest pain and tachypnea.",
-      "th": "ผู้ป่วยหญิงอายุ 35 ปี สูบบุหรี่และทานยาคุมกำเนิด มาด้วยอาการเจ็บหน้าอกข้างขวาแปล๊บๆ เฉียบพลันและหายใจเร็ว"
-    },
-    "labs": [
-      {"Test": "D-Dimer", "Result": "3200", "Unit": "ng/mL", "Range": "< 500"},
-      {"Test": "Heart Rate", "Result": "122", "Unit": "bpm", "Range": "60-100"},
-      {"Test": "O2 Saturation", "Result": "91", "Unit": "%", "Range": "> 95"}
-    ],
-    "answer": "Pulmonary Embolism",
-    "must_exclude": ["Pneumothorax", "Pleurisy", "Myocardial Infarction"],
-    "key_points": ["D-Dimer", "Tachycardia", "Oral contraceptives", "Sudden dyspnea"],
-    "next_step_correct": "Diagnostic Imaging",
-    "dispo_correct": "Admit General Ward",
-    "interprofessional_answers": {
-      "doctor": "Pulmonary Embolism (PE) - Perform CTPA immediately.",
-      "pharmacy": "Low Molecular Weight Heparin (LMWH) or Direct Oral Anticoagulants (DOACs).",
-      "nursing": "O2 supplement, monitor for signs of DVT in lower limbs.",
-      "ams": "High D-dimer confirms thrombus activity; need CT confirmation.",
-      "dentistry": "Risk of bleeding if patient is started on anticoagulants.",
-      "vet": "Feline Aortic Thromboembolism (FATE) - similar vascular occlusion logic.",
-      "public health": "Counseling on smoking and hormonal contraceptive risks."
-    }
-  },
-  {
-    "case_id": "CVS-M-002",
-    "block": "Cardiovascular",
-    "difficulty": "medium",
-    "scenario": {
-      "en": "A 40-year-old male with a history of IV drug use presents with high fever, chills, and a new systolic murmur at the apex.",
-      "th": "ผู้ป่วยชายอายุ 40 ปี ประวัติใช้ยาเสพติดฉีดเข้าเส้น มาด้วยไข้สูง หนาวสั่น และตรวจพบเสียง Murmur ใหม่ที่หัวใจ"
-    },
-    "labs": [
-      {"Test": "Blood Culture", "Result": "Pending", "Unit": "-", "Range": "Negative"},
-      {"Test": "Echocardiogram", "Result": "Vegetation on Mitral Valve", "Unit": "-", "Range": "Normal"}
-    ],
-    "answer": "Infective Endocarditis",
-    "must_exclude": ["Sepsis", "Rheumatic Fever", "Pneumonia"],
-    "key_points": ["IV drug use", "New murmur", "Vegetation", "Fever"],
-    "next_step_correct": "Consult Specialist",
-    "dispo_correct": "Admit General Ward",
-    "interprofessional_answers": {
-      "doctor": "Infective Endocarditis - Empirical IV Antibiotics (Vancomycin + Ceftriaxone).",
-      "pharmacy": "Ensure proper IV antibiotic dosing and monitor for Vancomycin toxicity (Cr).",
-      "nursing": "Monitor fever spikes and neurological signs for embolic stroke.",
-      "ams": "Serial blood cultures (3 sets) and monitor inflammatory markers (CRP/ESR).",
-      "dentistry": "Crucial: History of poor oral hygiene or recent dental extraction?",
-      "vet": "Bacterial endocarditis can occur in dogs with periodontal disease.",
-      "public health": "Needle exchange programs and oral hygiene awareness."
-    }
-  },
-  {
-    "case_id": "CVS-H-001",
-    "block": "Cardiovascular",
+    "block": "Cardiology",
     "difficulty": "hard",
     "scenario": {
-      "en": "A 50-year-old male presents with sudden 'tearing' chest pain radiating to his back. His BP is 180/110 in the right arm and 140/90 in the left arm.",
-      "th": "ผู้ป่วยชายอายุ 50 ปี มาด้วยอาการเจ็บหน้าอกเหมือนโดนฉีกขาดร้าวไปที่หลัง ความดันแขนขวา 180/110 แขนซ้าย 140/90"
+      "en": "A 65-year-old male presents with 2 hours of crushing substernal chest pain, radiating to the left arm. He is diaphoretic and pale. BP 90/60 mmHg, HR 110 bpm. History of DM and heavy smoking."
     },
     "labs": [
-      {"Test": "Chest CT", "Result": "Dissection flap in ascending aorta", "Unit": "-", "Range": "Normal"},
-      {"Test": "Heart Rate", "Result": "105", "Unit": "bpm", "Range": "60-100"}
+      { "Test": "Troponin T", "Result": "480", "Unit": "ng/L", "Ref": "<14" },
+      { "Test": "EKG", "Result": "ST-elevation V1-V4", "Unit": "-", "Ref": "Normal" },
+      { "Test": "Lactate", "Result": "3.2", "Unit": "mmol/L", "Ref": "<2.0" }
     ],
-    "answer": "Aortic Dissection Type A",
-    "must_exclude": ["Myocardial Infarction", "PE", "Esophageal Rupture"],
-    "key_points": ["Tearing pain", "BP discrepancy", "Dissection flap", "Back radiation"],
-    "next_step_correct": "Emergency Procedure",
-    "dispo_correct": "Emergency Operation",
+    "answer": "Acute Anterior Wall STEMI with Cardiogenic Shock",
     "interprofessional_answers": {
-      "doctor": "Stanford Type A Aortic Dissection - Immediate Surgical Repair.",
-      "pharmacy": "Esmolol or Labetalol infusion to decrease HR and BP (Shear stress).",
-      "nursing": "Maintain target SBP 100-120 mmHg. Pain control is vital.",
-      "ams": "Check Hb/Hct for internal bleeding. Type and Cross-match 10 units of Blood.",
-      "dentistry": "Extremely high risk. Avoid any stress or local anesthetics with Epinephrine.",
-      "vet": "Aortic aneurysm/dissection is rare but reported in giant breed dogs.",
-      "public health": "Importance of long-term hypertension control in the population."
-    }
+      "doctor": "Immediate Primary PCI within 90 mins. Load Aspirin 300mg + Clopidogrel 600mg. Consider vasopressors.",
+      "pharmacy": "Verify DAPT loading dose. Monitor for Heparin-induced thrombocytopenia (HIT). High-intensity statin initiation.",
+      "nursing": "Establish 2 large-bore IVs. Continuous cardiac monitoring. Prepare for emergency transfer to Cath Lab.",
+      "ams": "Prioritize Troponin TAT < 60 mins. Check for hemolysis in samples which may interfere with high-sensitivity Troponin.",
+      "dentistry": "Strict contraindication for elective dental work. Emergency pain management only after medical stabilization.",
+      "vet": "Comparative: Rule out traumatic myocarditis or toxic ingestion if similar symptoms appear in canine patients.",
+      "public health": "Activate STEMI Fast-Track protocol. Analyze community smoking prevalence and metabolic syndrome risk factors."
+    },
+    "evolution": "24 Hours Later: Patient develops pulmonary edema and new-onset systolic murmur at the apex."
   },
   {
-    "case_id": "CVS-H-002",
-    "block": "Cardiovascular",
-    "difficulty": "hard",
+    "block": "Infectious Disease",
+    "difficulty": "medium",
     "scenario": {
-      "en": "A 22-year-old athlete collapsed during a marathon. On exam, he has a loud systolic murmur that increases with Valsalva maneuver.",
-      "th": "นักกีฬาอายุ 22 ปี หมดสติขณะวิ่งมาราธอน ตรวจร่างกายพบเสียง Murmur ที่ดังขึ้นเมื่อทำ Valsalva maneuver"
+      "en": "A 28-year-old female presents with high fever, severe headache, and stiff neck for 24 hours. She recently returned from a crowded music festival."
     },
     "labs": [
-      {"Test": "EKG", "Result": "LVH with deep Q waves", "Unit": "-", "Range": "Normal"},
-      {"Test": "Echo", "Result": "Asymmetric septal hypertrophy", "Unit": "mm", "Range": "< 12"}
+      { "Test": "WBC", "Result": "18,500", "Unit": "cells/uL", "Ref": "4,500-11,000" },
+      { "Test": "CSF Glucose", "Result": "25", "Unit": "mg/dL", "Ref": "40-70" },
+      { "Test": "CSF Protein", "Result": "150", "Unit": "mg/dL", "Ref": "15-45" }
     ],
-    "answer": "Hypertrophic Cardiomyopathy",
-    "must_exclude": ["Aortic Stenosis", "Dehydration", "Syncope"],
-    "key_points": ["Athlete collapse", "Valsalva murmur", "Septal hypertrophy", "Deep Q waves"],
-    "next_step_correct": "Consult Specialist",
-    "dispo_correct": "Admit General Ward",
+    "answer": "Acute Bacterial Meningitis",
     "interprofessional_answers": {
-      "doctor": "Hypertrophic Cardiomyopathy (HCM) - Screen for Sudden Cardiac Death risk.",
-      "pharmacy": "Beta-blockers (Propranolol/Metoprolol) to improve diastolic filling.",
-      "nursing": "Ensure patient avoids strenuous exercise and stays hydrated.",
-      "ams": "Genetic testing may be indicated for family screening.",
-      "dentistry": "Be cautious with tachycardia-inducing drugs (Epinephrine).",
-      "vet": "HCM is the most common heart disease in cats (Main Coon/Ragdoll).",
-      "public health": "Pre-participation screening for young athletes in schools."
-    }
+      "doctor": "Start Ceftriaxone 2g IV Q12H + Vancomycin. Perform Lumbar Puncture immediately unless contraindicated.",
+      "pharmacy": "Ensure steroid (Dexamethasone) is given before or with the first dose of antibiotics to reduce neurological sequelae.",
+      "nursing": "Droplet precautions. Monitor GCS frequently. Maintain a quiet, dark environment due to photophobia.",
+      "ams": "Urgent CSF Gram stain and culture. Ensure CSF sample is not refrigerated as it may kill Neisseria meningitidis.",
+      "dentistry": "Monitor for potential odontogenic sources of intracranial infection (e.g., untreated apical periodontitis).",
+      "vet": "Differentiate from zoonotic meningitis (e.g., Streptococcus suis) if there was recent contact with raw pork.",
+      "public health": "Contact tracing for close contacts. Administer chemoprophylaxis (Rifampin or Ciprofloxacin) to roommates."
+    },
+    "evolution": "12 Hours Later: Patient develops a petechial rash on the lower extremities, suggesting meningococcemia."
+  },
+  {
+    "block": "Endocrinology",
+    "difficulty": "easy",
+    "scenario": {
+      "en": "A 45-year-old male presents with extreme thirst, frequent urination, and blurred vision over the past 2 weeks. Random capillary blood glucose is 350 mg/dL."
+    },
+    "labs": [
+      { "Test": "HbA1c", "Result": "10.5", "Unit": "%", "Ref": "<5.7" },
+      { "Test": "Urine Ketone", "Result": "Negative", "Unit": "-", "Ref": "Negative" },
+      { "Test": "Creatinine", "Result": "0.9", "Unit": "mg/dL", "Ref": "0.7-1.3" }
+    ],
+    "answer": "Type 2 Diabetes Mellitus with Symptomatic Hyperglycemia",
+    "interprofessional_answers": {
+      "doctor": "Start Metformin 500mg BID. Lifestyle modification and diabetic education. Follow up in 2 weeks.",
+      "pharmacy": "Counsel on Metformin side effects (GI upset). Teach patient how to use a glucometer and recognize hypoglycemia.",
+      "nursing": "Assess patient's technique for self-monitoring of blood glucose (SMBG). Check for foot ulcers or loss of sensation.",
+      "ams": "Verify HbA1c result. Ensure patient was not acutely ill which could transiently elevate glucose results.",
+      "dentistry": "Screen for periodontal disease. High risk for oral candidiasis and delayed wound healing post-extraction.",
+      "vet": "Comparative: Similar to feline diabetes (insulin resistance). Manage with weight control and low-carb diet.",
+      "public health": "Enlist patient in a community-based diabetes prevention and self-management support program (DSMS)."
+    },
+    "evolution": "1 Month Later: HbA1c remains high (10.2%). Patient admits to not following the prescribed diet."
   }
 ]
