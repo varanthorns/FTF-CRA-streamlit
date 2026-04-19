@@ -85,7 +85,7 @@ st.markdown("""
 def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, confidence, stress):
     model = genai.GenerativeModel('gemini-1.5-flash')
     
-    # รวมคำสั่งทั้งหมดไว้ใน f-string เดียว
+    # รวม Prompt และ JSON Instruction ไว้ด้วยกัน
     prompt = f"""
     Act as a Senior Clinical Professor and Cognitive Scientist. 
     Evaluate the clinical reasoning of a {role}.
@@ -101,33 +101,27 @@ def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, c
     - Reasoning Map (Synthesis): {user_map}
     - Rationale & SBAR Handover: {user_re}
 
-    [Evaluation Tasks - Critical Analysis]
-    1. Information Synthesis: Did the user correctly identify 'Pertinent Positives'? 
-    2. Cognitive Bias: Did the user show signs of 'Premature Closure' or 'Anchoring Bias'?
-    3. Self-Awareness: Compare confidence ({confidence}%) with actual accuracy.
-    4. Role-Specific Logic: Does the rationale match the standard of care for a {role}?
+    [Evaluation Tasks]
+    1. Information Synthesis: Pertinent Positives analysis.
+    2. Cognitive Bias: Identify Premature Closure or Anchoring.
+    3. Self-Awareness: Compare confidence vs accuracy.
 
     [Response Format - JSON REQUIRED AT THE END]
-    Provide your full feedback in professional text first, then end with a JSON block EXACTLY like this:
+    Provide professional text feedback first, then end with this JSON block:
     {{
       "scores": {{
-        "Diagnosis": 0-10,
-        "Reasoning": 0-10,
-        "SBAR": 0-10,
-        "Safety": 0-10
+        "Diagnosis": 0-10, "Reasoning": 0-10, "SBAR": 0-10, "Safety": 0-10
       }},
       "bias_detected": "string",
       "pearl": "string"
     }}
-    
-    English only.
     """
     
     try:
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        return f"AI Mentor is processing... (Note: {str(e)})"
+        return f"AI Mentor error: {str(e)}"
 
 # ===================== 4. DATA LOADING =====================
 @st.cache_data
