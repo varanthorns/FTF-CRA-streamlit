@@ -85,7 +85,7 @@ st.markdown("""
 def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, confidence, stress):
     model = genai.GenerativeModel('gemini-1.5-flash')
     
-    # เพิ่มมิติการวิเคราะห์ Metacognition (การประเมินความมั่นใจและความเครียดของตัวเอง)
+    # รวมคำสั่งทั้งหมดไว้ใน f-string เดียว
     prompt = f"""
     Act as a Senior Clinical Professor and Cognitive Scientist. 
     Evaluate the clinical reasoning of a {role}.
@@ -102,18 +102,23 @@ def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, c
     - Rationale & SBAR Handover: {user_re}
 
     [Evaluation Tasks - Critical Analysis]
-    1. Information Synthesis: Did the user correctly identify 'Pertinent Positives' from the case? 
+    1. Information Synthesis: Did the user correctly identify 'Pertinent Positives'? 
     2. Cognitive Bias: Did the user show signs of 'Premature Closure' or 'Anchoring Bias'?
-    3. Noise vs. Signal: Did they filter out irrelevant lab data?
-    4. Self-Awareness: Compare their confidence ({confidence}%) with their actual accuracy. Are they 'Overconfident' or 'Underconfident'?
-    5. Role-Specific Logic: Does the rationale match the standard of care for a {role}?
+    3. Self-Awareness: Compare confidence ({confidence}%) with actual accuracy.
+    4. Role-Specific Logic: Does the rationale match the standard of care for a {role}?
 
-    [Required Output Format - Strict]
-    - **Metacognitive Score (0-10):** (Score based on how well they know what they know)
-    - **Logic Consistency Score (0-10):** (Does the rationale actually lead to the diagnosis?)
-    - **Diagnostic Accuracy:** (Correct/Partial/Incorrect)
-    - **Clinical Pearl:** (One high-level insight this user needs to grow)
-    - **Feedback:** (Brief, professional, and encouraging)
+    [Response Format - JSON REQUIRED AT THE END]
+    Provide your full feedback in professional text first, then end with a JSON block EXACTLY like this:
+    {{
+      "scores": {{
+        "Diagnosis": 0-10,
+        "Reasoning": 0-10,
+        "SBAR": 0-10,
+        "Safety": 0-10
+      }},
+      "bias_detected": "string",
+      "pearl": "string"
+    }}
     
     English only.
     """
@@ -123,18 +128,6 @@ def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, c
         return response.text
     except Exception as e:
         return f"AI Mentor is processing... (Note: {str(e)})"
-    [Response Format - JSON REQUIRED AT THE END]
-    Provide your full feedback in text first, then end with a JSON block:
-    {
-      "scores": {
-        "Diagnosis": 0-10,
-        "Reasoning": 0-10,
-        "SBAR": 0-10,
-        "Safety": 0-10
-      },
-      "bias_detected": "string",
-      "pearl": "string"
-    }
 
 # ===================== 4. DATA LOADING =====================
 @st.cache_data
