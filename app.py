@@ -3,12 +3,12 @@ import json, random, pandas as pd, os, time
 import google.generativeai as genai
 
 # ===================== ⚙️ 1. GLOBAL CONFIG & UI SETUP =====================
-DB_FILE = "clinical_scores.csv"
-
-# ต้องอยู่บรรทัดแรกๆ และมีแค่ที่เดียว!
+# ต้องอยู่บรรทัดแรกสุดของไฟล์ ห้ามมี st อื่นก่อนหน้านี้
 st.set_page_config(layout="wide", page_title="FTF-CRA Clinical Platform", page_icon="🩺")
 
-# 🔐 1.1 API Setup
+DB_FILE = "clinical_scores.csv"
+
+# 🔐 1.1 API Setup - ปิดก้อน try/except ให้จบในตัวทันที
 try:
     if "GEMINI_API_KEY" in st.secrets:
         GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
@@ -19,7 +19,7 @@ except Exception:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# 💾 1.2 Database & Adaptive Functions
+# 💾 1.2 Database & Logic Functions
 def save_score_local(user, role, score, block, competency=None, time_taken=0):
     new_entry = {
         "User": user, "Role": role, "Score": score, "Block": block,
@@ -46,20 +46,16 @@ def get_adaptive_difficulty(user):
             else: return "hard"
     return "easy"
 
-# 🩺 1.3 AI Feedback Engine
 def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, confidence, stress):
     model = genai.GenerativeModel('gemini-1.5-flash')
-    prompt = f"""Act as a Senior Clinical Professor. Evaluate this {role}'s clinical reasoning.
-    Diagnosis: {user_dx} | Rationale: {user_re} | Map: {user_map} | Target: {target}
-    Time: {time_taken}s | Confidence: {confidence}% | Stress: {stress}/10
-    Return evaluation in Markdown with Metrics, Insight, and Professor's Pearl."""
+    prompt = f"Evaluate this {role}: Dx={user_dx}, Rationale={user_re}, Map={user_map}, Answer={target}, Time={time_taken}s."
     try:
         response = model.generate_content(prompt)
         return response.text
-    except Exception as e:
-        return f"🚨 AI Mentor Error: {str(e)}"
+    except:
+        return "🚨 AI Mentor Offline"
 
-# ===================== 🎨 2. STYLING & DATA LOADING =====================
+# ===================== 🎨 2. UI STYLING =====================
 st.markdown("""
     <style>
     .main { background-color: #f8f9fa; }
@@ -69,96 +65,69 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-@st.cache_data
-def load_cases():
-    if os.path.exists("cases.json"):
-        with open("cases.json", "r", encoding="utf-8") as f: return json.load(f)
-    return [{"block":"Cardiology", "difficulty":"hard", "scenario":{"en":"65yo Male presents with chest pain..."}, "labs":[], "answer":"Acute STEMI"}]
-
-all_cases = load_cases()
-
 # 🔄 Session State Init
-if "case" not in st.session_state: st.session_state.case = all_cases[0]
 if "submitted" not in st.session_state: st.session_state.submitted = False
 if "ai_feedback" not in st.session_state: st.session_state.ai_feedback = ""
 if "start_time" not in st.session_state: st.session_state.start_time = time.time()
-if "evolved" not in st.session_state: st.session_state.evolved = False
 
 # ===================== 🧭 3. SIDEBAR =====================
 with st.sidebar:
     st.title("🩺 FTF-CRA v9.9.5")
     menu = st.radio("Main Menu", ["📖 Manual & Standards", "🧪 Clinical Simulator", "🏆 Analytics Hub"])
     st.divider()
-    user_name = st.text_input("👤 Name", "User_01")
-    profession = st.selectbox("👩‍⚕️ Role", ["Doctor", "Pharmacy", "Nursing", "AMS", "Dentistry", "Vet"]).lower()
+    user_name = st.text_input("👤 Practitioner Name", "User_01")
+    profession = st.selectbox("👩‍⚕️ Clinical Role", ["Doctor", "Pharmacy", "Nursing", "AMS", "Dentistry", "Vet"]).lower()
     
-    adaptive_mode = st.checkbox("🧠 Adaptive Mode", value=False)
-    f_diff = get_adaptive_difficulty(user_name) if adaptive_mode else st.select_slider("Difficulty", options=["easy", "medium", "hard"], value="medium")
+    adaptive_mode = st.checkbox("🧠 AI Adaptive Mode", value=False)
+    f_diff = get_adaptive_difficulty(user_name) if adaptive_mode else st.select_slider("Set Difficulty", options=["easy", "medium", "hard"], value="medium")
 
 # ===================== 🚥 4. PAGE ROUTING =====================
 
+# --- 📖 MANUAL PAGE ---
 if menu == "📖 Manual & Standards":
     st.header("📖 Clinical Operations Guide")
-    st.markdown("### **System Philosophy**")
-    st.info("Adaptive Cognitive Load–Driven AI Loop")
-    # ... รายละเอียด Manual ของนาย ...
+    st.info("System Philosophy: Adaptive Cognitive Load–Driven AI Loop")
+    st.write("Welcome to the clinical reasoning platform. Follow the steps in the Simulator to begin.")
 
+# --- 🧪 SIMULATOR PAGE ---
 elif menu == "🧪 Clinical Simulator":
-    c = st.session_state.case
+    st.header("🧪 Clinical Simulator")
     elapsed = int(time.time() - st.session_state.start_time)
     
-    col_h1, col_h2 = st.columns([3, 1])
-    with col_h1: st.title(f"🏥 Case: {c.get('block')} ({f_diff.upper()})")
-    with col_h2: st.markdown(f"<div class='stress-timer'>⏳ {600-elapsed}s</div>", unsafe_allow_html=True)
-
-    t1, t2, t3 = st.tabs(["📋 Scenario", "🧠 Reasoning Map", "✍️ Entry"])
+    st.markdown(f"<div class='stress-timer'>⏳ Time Elapsed: {elapsed}s</div>", unsafe_allow_html=True)
     
-    with t1:
-        st.write(c.get('scenario', {}).get('en'))
-        if c.get("labs"): st.table(pd.DataFrame(c["labs"]))
-        if st.button("⏩ Advance 24 Hours"): st.session_state.evolved = True
-        if st.session_state.evolved: st.warning(c.get('evolution', 'Stable.'))
-
-    with t2:
-        map_pos = st.text_area("Pertinent Positives (+)", key="map_pos", height=150)
-        map_neg = st.text_area("Pertinent Negatives (-)", key="map_neg", height=150)
-
-    with t3:
-        dx_in = st.text_input("Final Diagnosis")
-        re_in = st.text_area("Rationale")
-        u_conf = st.slider("Confidence", 0, 100, 80)
-        stress_lv = st.slider("Stress", 0, 10, 5)
-
-        if st.button("🚀 SUBMIT DECISION"):
-            if dx_in and re_in:
-                with st.spinner("AI Evaluating..."):
-                    fb = get_ai_feedback_v9_5(dx_in, re_in, f"P:{map_pos} N:{map_neg}", c.get('answer'), profession, elapsed, u_conf, stress_lv)
-                    st.session_state.ai_feedback = fb
-                    st.session_state.submitted = True
-                    # บันทึกคะแนนแบบง่าย
-                    save_score_local(user_name, profession, 10 if dx_in.lower() in str(c.get('answer')).lower() else 5, c.get('block'), time_taken=elapsed)
-                    st.rerun()
+    dx_in = st.text_input("🩺 Your Diagnosis")
+    re_in = st.text_area("✍️ Pathophysiological Rationale")
+    
+    if st.button("🚀 SUBMIT DECISION"):
+        if dx_in and re_in:
+            with st.spinner("AI Evaluating..."):
+                st.session_state.ai_feedback = get_ai_feedback_v9_5(dx_in, re_in, "None", "STEMI", profession, elapsed, 100, 5)
+                st.session_state.submitted = True
+                save_score_local(user_name, profession, 10, "Cardiology", time_taken=elapsed)
+                st.rerun()
 
     if st.session_state.submitted:
-        st.divider()
+        st.subheader("👨‍🏫 AI Mentor Feedback")
         st.markdown(st.session_state.ai_feedback)
-        if st.button("🏁 Reset"):
+        if st.button("🔄 Reset Case"):
             st.session_state.submitted = False
             st.session_state.start_time = time.time()
             st.rerun()
 
+# --- 🏆 ANALYTICS PAGE ---
 elif menu == "🏆 Analytics Hub":
-    st.header("🏆 Performance Analytics")
+    st.header("🏆 Performance Analytics Dashboard")
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
         if not df.empty:
             c1, c2, c3 = st.columns(3)
-            c1.metric("Total Cases", len(df))
-            c2.metric("Avg Score", f"{df['Score'].mean():.1f}")
-            c3.metric("Avg Time", f"{df['Time'].mean():.0f}s")
+            c1.metric("Total Sims", len(df))
+            c2.metric("Mean Score", f"{df['Score'].mean():.1f}/10")
+            c3.metric("Avg Speed", f"{df['Time'].mean():.0f}s")
             st.line_chart(df.set_index("Timestamp")["Score"])
-        else: st.warning("No data.")
-    else: st.info("No database found.")
+        else: st.warning("No simulation data yet.")
+    else: st.info("Database not found. Start a simulation first!")
 
 st.markdown("---")
 st.caption("FTF-CRA Global v9.9.5 | © 2026")
