@@ -443,8 +443,12 @@ elif menu == "🧪 Clinical Simulator":
         
         with st.expander("🔑 View Gold Standard Answer"):
             st.success(f"**Target Diagnosis:** {c.get('answer')}")
-            st.write(f"**Professional Perspective ({profession}):**")
-            st.info(c.get('interprofessional_answers', {}).get(profession, "Consult Senior Staff."))
+            
+            # ดึงคำตอบตาม Profession ที่เลือกมาแสดง
+            target_role_answer = c.get('interprofessional_answers', {}).get(profession, "Consult Senior Staff for professional specific guidance.")
+            
+            st.write(f"**Professional Perspective ({profession.upper()}):**")
+            st.info(target_role_answer)
         
         if st.button("🏁 Finish & Start New Case"):
             st.session_state.submitted = False
