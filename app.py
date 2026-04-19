@@ -485,62 +485,104 @@ elif menu == "🧪 Clinical Simulator":
 # --- 🏆 ANALYTICS HUB ---
 elif menu == "🏆 Analytics Hub":
     st.header("🏆 Performance Analytics Dashboard")
+    st.markdown("Detailed breakdown of your clinical reasoning journey and competency growth.")
     
+    # 1. ตรวจสอบไฟล์ Database
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
         
         if not df.empty:
-            # 1. แสดงตารางข้อมูลล่าสุด
-            st.dataframe(df.sort_values(by="Timestamp", ascending=False), use_container_width=True)
+            # --- 📈 ส่วนที่ 1: KEY PERFORMANCE METRICS ---
+            c1, c2, c3, c4 = st.columns(4)
+            
+            # คำนวณค่าต่างๆ
+            total_sims = len(df)
+            avg_score = df['Score'].mean()
+            avg_time = df['Time'].mean()
+            
+            # แสดง Metrics
+            c1.metric("Total Cases", total_sims)
+            c2.metric("Avg Score", f"{avg_score:.1f}/10")
+            c3.metric("Avg Speed", f"{avg_time:.0f}s")
+            
+            # คำนวณ Success Rate (สมมติว่า Score >= 8 คือ Success)
+            success_rate = (len(df[df['Score'] >= 8]) / total_sims) * 100
+            c4.metric("Success Rate", f"{success_rate:.0f}%")
+            
             st.divider()
+
+            # --- 📊 ส่วนที่ 2: COMPETENCY RADAR & LEARNING CURVE ---
+            col_left, col_right = st.columns([1, 1])
             
-            # 2. คำนวณ Metrics หลัก
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Total Simulations", len(df))
-            c2.metric("Mean Diagnosis Score", f"{df['Score'].mean():.1f}/10")
-            c3.metric("Avg Time Taken", f"{df['Time'].mean():.0f}s")
-            
-            # 3. กราฟ Learning Curve (Score over time)
-            st.subheader("📈 Learning Curve (Overall Score)")
-            df["Timestamp"] = pd.to_datetime(df["Timestamp"])
-            st.line_chart(df.set_index("Timestamp")["Score"])
-            
-            # 4. Competency Breakdown (แก้จุดที่ Error)
-            st.subheader("🧠 Competency Radar")
-            comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
-            
-            # ตรวจสอบว่าในไฟล์มี Column เหล่านี้จริงๆ ไหม
-            existing_cols = [col for col in comp_cols if col in df.columns]
-            
-            if existing_cols:
-                # คำนวณค่าเฉลี่ย
-                avg_series = df[existing_cols].mean()
+            with col_left:
+                st.subheader("🧠 Competency Radar")
+                # นิยาม Columns ที่เราต้องการวัดผล
+                comp_cols = ["Diagnosis", "Reasoning", "SBAR", "Safety"]
+                # กรองเอาเฉพาะที่มีอยู่ในไฟล์ CSV จริงๆ
+                existing_cols = [col for col in comp_cols if col in df.columns]
                 
-                # แสดงเป็น Bar Chart แบบง่ายก่อน
-                st.bar_chart(avg_series)
-                
-                # (Optional) ถ้าลง plotly ไว้ จะสวยมากครับ
-                try:
-                    import plotly.graph_objects as go
-                    fig = go.Figure(data=go.Scatterpolar(
-                        r=avg_series.values.tolist() + [avg_series.values[0]],
-                        theta=existing_cols + [existing_cols[0]],
-                        fill='toself',
-                        line_color='#1976D2'
-                    ))
-                    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 10])))
-                    st.plotly_chart(fig, use_container_width=True)
-                except ImportError:
-                    st.info("Tip: Install 'plotly' to view the Radar Chart.")
+                if existing_cols:
+                    avg_values = df[existing_cols].mean().tolist()
                     
+                    try:
+                        import plotly.graph_objects as go
+                        # สร้าง Radar Chart ด้วย Plotly
+                        fig = go.Figure(data=go.Scatterpolar(
+                            r=avg_values + [avg_values[0]], # ปิดวงกลม
+                            theta=existing_cols + [existing_cols[0]],
+                            fill='toself',
+                            name='Average Competency',
+                            line_color='#1976D2',
+                            fillcolor='rgba(25, 118, 210, 0.3)'
+                        ))
+                        
+                        fig.update_layout(
+                            polar=dict(
+                                radialaxis=dict(visible=True, range=[0, 10])
+                            ),
+                            showlegend=False,
+                            margin=dict(l=40, r=40, t=20, b=20)
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                    except Exception as e:
+                        st.bar_chart(df[existing_cols].mean())
+                        st.info("Install 'plotly' for enhanced Radar visualization.")
+                else:
+                    st.warning("No competency data found in logs.")
+
+            with col_right:
+                st.subheader("📈 Learning Progress")
+                if "Timestamp" in df.columns:
+                    # แปลงเวลาและพลอตกราฟเส้น
+                    df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+                    # เรียงลำดับตามเวลาก่อนพลอต
+                    df_sorted = df.sort_values("Timestamp")
+                    st.line_chart(df_sorted.set_index("Timestamp")["Score"])
+                    st.caption("Overall Score trends across your simulation sessions.")
+
+            st.divider()
+
+            # --- 📋 ส่วนที่ 3: RAW DATA LOGS ---
+            with st.expander("📂 View Full Simulation Logs"):
+                # แสดงตารางข้อมูล เรียงจากล่าสุดขึ้นก่อน
+                st.dataframe(
+                    df.sort_values(by="Timestamp", ascending=False), 
+                    use_container_width=True,
+                    hide_index=True
+                )
+                
+                # ปุ่มล้างข้อมูล (สำหรับ Debug/Reset)
+                if st.button("🗑️ Clear Local History"):
+                    if os.path.exists(DB_FILE):
+                        os.remove(DB_FILE)
+                        st.success("History cleared. Please refresh.")
+                        st.rerun()
         else:
-            st.warning("Database is empty. Please complete a case in the Simulator first.")
-    else: 
-        st.info("No simulation data found. Please start by using the Clinical Simulator.")
+            st.warning("Your clinical record is currently empty. Complete a case in the Simulator to see your analytics.")
             
     else: 
         # กรณีรันครั้งแรกแล้วยังไม่มีไฟล์ .csv
-        st.info("No simulation data found. Please start by using the Clinical Simulator.")
+        st.info("🚀 Welcome to FTF-CRA! No simulation data found. Start your first clinical case to activate the dashboard.")
     if existing_cols:
         st.subheader("🕸️ Competency Radar")
         avg_values = df[existing_cols].mean().tolist()
