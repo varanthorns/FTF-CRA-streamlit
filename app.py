@@ -3,9 +3,6 @@ import json, random, pandas as pd, os, time
 import google.generativeai as genai
 # ===================== ⚙️ GLOBAL CONFIG =====================
 DB_FILE = "clinical_scores.csv"  #
-if "existing_cols" not in st.session_state:
-    st.session_state.existing_cols = []
-existing_cols = []  #
 
 # ===================== 🔧 1. FIX + NEW CORE SYSTEM =====================
 
@@ -129,10 +126,9 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ===================== 3. API & DATABASE SETUP (UPDATED) =====================
-def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken):
+def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken, confidence, stress):
     model = genai.GenerativeModel('gemini-1.5-flash')
     
-    # Prompt ตัวใหม่ที่เน้นวิเคราะห์ Cognitive Load และ Reasoning Logic
     prompt = f"""
     Act as a Senior Clinical Professor. Evaluate this {role}'s clinical reasoning.
     
@@ -142,11 +138,13 @@ def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken):
     - Reasoning Map (Positives/Negatives): {user_map}
     - Reference Answer: {target}
     - Time Taken: {time_taken}s
+    - Confidence Level: {confidence}%
+    - Perceived Stress: {stress}/10
     
     [CRITICAL EVALUATION STEPS]
-    1. Mapping Logic: Did the student correctly identify 'Pertinent Positives' that lead to the diagnosis? Did they miss 'Clinical Noise'?
-    2. Mechanism: Does their pathophysiology rationale explain HOW the symptoms occurred?
-    3. SBAR Handover: Is it safe for a real-world transition of care?
+    1. Mapping Logic: Did the student link 'Pertinent Positives' to the Diagnosis? Did they filter out 'Clinical Noise'?
+    2. Cognitive Calibration: If confidence is high but diagnosis is wrong, identify 'Overconfidence Bias'.
+    3. Stress Impact: Based on stress {stress}/10, assess if the student's reasoning remained structured.
     
     [STRICT RESPONSE FORMAT - Use Markdown]
     ### 📊 Performance Metrics
@@ -156,22 +154,20 @@ def get_ai_feedback_v9_5(user_dx, user_re, user_map, target, role, time_taken):
     - **Safety & Disposition:** (0-10)
     
     ### 🧠 Clinical Insight
-    - **Strengths:** - **Logic Gaps:** (Check if their reasoning map matches their diagnosis)
-    - **Cognitive Bias:** (Identify specific biases like Anchoring, Search Satisficing)
+    - **Strengths:** - **Logic Gaps:** (Check if map matches diagnosis)
+    - **Cognitive Bias:** (Identify: Anchoring, Confirmation, or Overconfidence)
     
     ### 💡 Professor's Pearl
-    (A high-level clinical tip for this specific case to enhance professional expertise)
+    (High-level clinical tip)
 
     ### 🧘 Well-being Tip
-    (Brief advice based on their stress level and performance)
-    
-    English only.
+    (Advice based on {stress}/10 stress level)
     """
     try:
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        return f"🚨 AI Mentor is currently offline (Error: {str(e)}). Please review the Gold Standard Answer manually."
+        return f"🚨 AI Mentor Error: {str(e)}"
 
 # ===================== 4. DATA LOADING =====================
 @st.cache_data
@@ -445,6 +441,9 @@ elif menu == "🧪 Clinical Simulator":
                         target=c.get('answer'),
                         role=profession,
                 time_taken=elapsed
+                confidence=u_conf,   
+                stress=stress_level  
+         )
             if st.button("🚀 SUBMIT CLINICAL DECISION"):
                 if dx_in and re_in:
                     with st.spinner("⚕️ AI Mentor is evaluating your reasoning..."):
