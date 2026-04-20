@@ -489,27 +489,7 @@ elif menu == "🧪 Clinical Simulator":
                         st.rerun()
                 else:
                     st.error("Please provide both Diagnosis and Rationale before submitting.")
-            # --- SBAR HANDOVER (Moved inside Tab 3 for better flow) ---
-            st.divider()
-            st.markdown("#### 🗣️ SBAR Handover (Bonus Points)")
-            h_s = st.text_input("Situation", placeholder="What is happening now?", key="sbar_s")
-            h_b = st.text_input("Background", placeholder="History/Context?", key="sbar_b")
-            h_a = st.text_area("Assessment", placeholder="Your analysis?", key="sbar_a")
-            h_r = st.text_area("Recommendation", placeholder="Immediate plan?", key="sbar_r")
-
-            c_p1, c_p2 = st.columns(2)
-            u_step = c_p1.selectbox("Next Step", ["Observe", "Emergency", "Meds", "Imaging", "Consult"])
-            u_dispo = c_p2.selectbox("Disposition", ["ICU/CCU", "General Ward", "Discharge"])
-            u_conf = st.slider("Confidence (%)", 0, 100, 80)
-            st.divider()
-            st.markdown("### 🧘 Reflection & Well-being")
-            
-            reflection = st.text_area("What would you do differently next time?")
-            
-            stress_level = st.slider("😓 Stress Level", 0, 10, 5)
-            
-            if stress_level > 8:
-                st.warning("⚠️ High stress detected. Consider taking a short break.")
+        
            # --- SUBMIT LOGIC ---
             if st.button("🚀 SUBMIT CLINICAL DECISION"):
                 if dx_in and re_in:
