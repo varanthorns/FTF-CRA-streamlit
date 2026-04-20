@@ -11,7 +11,7 @@ DB_FILE = "clinical_scores.csv"  #
 try:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 except:
-    GEMINI_API_KEY = "DEMO_KEY"
+    GEMINI_API_KEY = "AIzaSyDyceNZMEAV61jtsPlfvXwKhwlVXcfaEDYY"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
