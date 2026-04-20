@@ -376,13 +376,24 @@ elif menu == "🧪 Clinical Simulator":
             pos_f = cm_col1.text_area("Pertinent Positives (+)", placeholder="Supporting findings...", height=150, key="map_pos")
             neg_f = cm_col2.text_area("Pertinent Negatives (-)", placeholder="Absent findings...", height=150, key="map_neg")
 
-        with t3:
+       with t3:
             st.markdown(f"### 🧬 Professional Entry: {profession.upper()}")
-            dx_in = st.text_input("🩺 Final Assessment / Diagnosis", key="entry_dx")
             
-            # (ตรงนี้คุณสามารถใส่ Dynamic Professional Fields และปุ่ม Submit ต่อได้เลยครับ)
+            # --- Analysis Phase Header ---
+            st.markdown("""
+                <div style="background-color: #f1f8e9; padding: 10px; border-radius: 8px; border-left: 5px solid #4CAF50; margin-bottom: 20px;">
+                    <p style="margin-bottom:0; font-weight:bold; color: #2E7D32;">🧠 Final Thought (Analysis Phase)</p>
+                    <small style="color: #558b2f;">วินิจฉัยสรุปหลังจากวิเคราะห์ข้อมูลทั้งหมด (Final Assessment)</small>
+                </div>
+            """, unsafe_allow_html=True)
+
+            # 1. Final Diagnosis (นี่คือตัวที่จะไปเทียบกับ First Thought)
+            dx_in = st.text_input("🩺 Final Assessment / Diagnosis", key="entry_dx", placeholder="สรุปการวินิจฉัยสุดท้ายของคุณที่นี่...")
             
-            # ===================== ✍️ DYNAMIC PROFESSIONAL FIELDS =====================
+            st.divider()
+
+            # 2. Dynamic Professional Fields (เปลี่ยนตามอาชีพ)
+            st.markdown("#### 🛠️ Specialized Clinical Actions")
             role_info = ""
             
             if profession == "doctor":
@@ -420,8 +431,64 @@ elif menu == "🧪 Clinical Simulator":
                 prevention = st.text_area("🛡️ Population-level Prevention", key="ph_prev")
                 role_info = f"Epi Risk: {epi_risk}, Prevention: {prevention}"
 
-            re_in = st.text_area("✍️ Pathophysiological Rationale", height=120, key="entry_re")
+            # 3. Rationale & SBAR
+            st.divider()
+            re_in = st.text_area("✍️ Pathophysiological Rationale", height=120, key="entry_re", placeholder="อธิบายเหตุผลทางพยาธิสรีรวิทยาที่สนับสนุนการวินิจฉัยของคุณ...")
             
+            with st.expander("🗣️ SBAR Handover (Bonus Points)"):
+                h_s = st.text_input("Situation", key="sbar_s")
+                h_b = st.text_input("Background", key="sbar_b")
+                h_a = st.text_area("Assessment", key="sbar_a")
+                h_r = st.text_area("Recommendation", key="sbar_r")
+
+            # 4. Decision Metrics
+            st.markdown("#### 📊 Clinical Decision Metrics")
+            c_p1, c_p2 = st.columns(2)
+            u_step = c_p1.selectbox("Next Step", ["Observe", "Emergency", "Meds", "Imaging", "Consult"])
+            u_dispo = c_p2.selectbox("Disposition", ["ICU/CCU", "General Ward", "Discharge"])
+            
+            u_conf = st.slider("Confidence (%)", 0, 100, 80)
+            stress_level = st.slider("😓 Stress Level (0-10)", 0, 10, 5)
+
+            # --- SUBMIT LOGIC ---
+            st.divider()
+            if st.button("🚀 SUBMIT CLINICAL DECISION"):
+                if dx_in and re_in:
+                    with st.spinner("⚕️ AI Mentor is analyzing your reasoning process..."):
+                        # ดึงค่าเพื่อส่งให้ AI
+                        f_thought = st.session_state.get('first_thought', 'Not recorded')
+                        user_map = f"Positives: {st.session_state.get('map_pos', '')}, Negatives: {st.session_state.get('map_neg', '')}"
+                        
+                        ai_response = get_ai_feedback_v9_5(
+                            user_dx=dx_in, 
+                            user_re=f"Rationale: {re_in} | Role Data: {role_info} | SBAR: {h_s}, {h_b}, {h_a}, {h_r}",
+                            user_map=user_map,
+                            target=c.get('answer'),
+                            role=profession,
+                            time_taken=elapsed,
+                            confidence=u_conf,
+                            stress=stress_level,
+                            first_thought=f_thought
+                        )
+                        
+                        st.session_state.ai_feedback = ai_response
+                        
+                        # คำนวณคะแนนพื้นฐาน
+                        target_ans_str = str(c.get('answer')).lower()
+                        score = 10 if dx_in.lower() in target_ans_str else 5
+                        
+                        competency = {
+                            "Diagnosis": score,
+                            "Reasoning": 8, 
+                            "SBAR": 10 if all([h_s, h_b, h_a, h_r]) else 5,
+                            "Safety": 10 if u_dispo == "ICU/CCU" else 7
+                        }
+                        
+                        save_score_local(user_name, profession, score, c.get('block'), competency, elapsed)
+                        st.session_state.submitted = True
+                        st.rerun()
+                else:
+                    st.error("Please provide both Diagnosis and Rationale before submitting.")
             # --- SBAR HANDOVER (Moved inside Tab 3 for better flow) ---
             st.divider()
             st.markdown("#### 🗣️ SBAR Handover (Bonus Points)")
